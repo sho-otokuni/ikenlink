@@ -9,7 +9,10 @@ const NOT_READY = "まだデータベースにつながっていません（.env
 export type MyLink = FeedbackLink & { createdAt: string; responseCount: number; lastResponseAt: string | null };
 export type Response = { id: string; answers: Answers; createdAt: string };
 /** 意見を見る画面に出すもの。adminToken は、作った人が自分の端末で開いたときだけ入る */
-export type Results = { link: FeedbackLink; responses: Response[]; adminToken: string | null };
+/** 意見を見る画面に出すもの。adminToken と isPublic は、作った人が自分の端末で開いたときだけ入る */
+export type Results = { link: FeedbackLink; responses: Response[]; adminToken: string | null; isPublic: boolean | null };
+/** 意見募集中の一覧の1件（届いた意見の中身は出さず、数だけ） */
+export type PublicLink = { id: string; title: string; makerName: string; questionCount: number; responseCount: number; createdAt: string };
 
 type LinkRow = {
   id: string;
@@ -20,9 +23,10 @@ type LinkRow = {
   questions: Question[];
   maker_name: string;
   created_at: string;
+  is_public?: boolean;
 };
 
-const LINK_COLUMNS = "id, title, tagline, url, images, questions, maker_name, created_at";
+const LINK_COLUMNS = "id, title, tagline, url, images, questions, maker_name, created_at, is_public";
 
 function toLink(row: LinkRow): FeedbackLink {
   return {
@@ -94,7 +98,7 @@ async function dataUrlToBlob(dataUrl: string) {
   return (await fetch(dataUrl)).blob();
 }
 
-export type LinkDraft = Omit<FeedbackLink, "id">;
+export type LinkDraft = Omit<FeedbackLink, "id"> & { /** 意見募集中の一覧に載せるか */ isPublic: boolean };
 
 /** リンクを作る。画面の写真（data URL）は保存場所に置いて、その URL を残す */
 export async function createLink(draft: LinkDraft): Promise<Result<string>> {
@@ -117,6 +121,7 @@ export async function createLink(draft: LinkDraft): Promise<Result<string>> {
     images,
     questions: draft.questions,
     maker_name: draft.makerName,
+    is_public: draft.isPublic,
   });
   if (error) return { ok: false, message: `リンクを作れませんでした。${NETWORK}` };
   // 管理用の URL の合言葉（ほかの端末から意見を見るため）。失敗しても、この端末からは見られるので続ける
@@ -166,6 +171,7 @@ export async function fetchResults(id: string): Promise<Result<Results | null>> 
       link: toLink(row),
       responses: ((rows ?? []) as { id: string; answers: Answers; created_at: string }[]).map((r) => ({ id: r.id, answers: r.answers, createdAt: r.created_at })),
       adminToken: secret?.admin_token ?? null,
+      isPublic: row.is_public ?? false,
     },
   };
 }
@@ -183,8 +189,33 @@ export async function fetchResultsByToken(id: string, token: string): Promise<Re
       link: toLink(d.link),
       responses: d.responses.map((r) => ({ id: r.id, answers: r.answers, createdAt: r.created_at })),
       adminToken: null,
+      isPublic: null,
     },
   };
+}
+
+/** 意見募集中の一覧（新しい順） */
+export async function fetchPublicLinks(): Promise<Result<PublicLink[]>> {
+  if (!isSupabaseConfigured) return { ok: false, message: NOT_READY };
+  const { data, error } = await supabase.rpc("public_links", { p_limit: 60 });
+  if (error || !data) return { ok: false, message: `読み込めませんでした。${NETWORK}` };
+  return {
+    ok: true,
+    data: (data as { id: string; title: string; maker_name: string; question_count: number; response_count: number; created_at: string }[]).map((r) => ({
+      id: r.id,
+      title: r.title,
+      makerName: r.maker_name,
+      questionCount: r.question_count,
+      responseCount: Number(r.response_count),
+      createdAt: r.created_at,
+    })),
+  };
+}
+
+/** 意見募集中の一覧に載せる・外す（作った人だけ） */
+export async function setLinkPublic(id: string, isPublic: boolean): Promise<Result<null>> {
+  const { error } = await supabase.from("links").update({ is_public: isPublic }).eq("id", id);
+  return error ? { ok: false, message: `変えられませんでした。${NETWORK}` } : { ok: true, data: null };
 }
 
 /** リンクを消す（届いた意見と、画面の写真も消える） */

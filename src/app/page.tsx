@@ -29,8 +29,8 @@ export default function Home() {
             <Link href="/new" className="flex min-h-12 items-center justify-center rounded-full bg-coral px-6 font-bold text-night">
               意見リンクを作る（無料）
             </Link>
-            <Link href="/l/demo" className="flex min-h-12 items-center justify-center rounded-full border border-line px-6 font-bold">
-              答える側を試す
+            <Link href="/list" className="flex min-h-12 items-center justify-center rounded-full border border-line px-6 font-bold">
+              意見募集中の作品を見る
             </Link>
           </div>
         </section>

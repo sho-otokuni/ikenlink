@@ -28,6 +28,8 @@ export function NewLinkForm() {
   const [images, setImages] = useState<string[]>([]);
   const [kinds, setKinds] = useState<QuestionKind[]>(TEMPLATE_KINDS.map((t) => t.kind));
   const [freeQuestions, setFreeQuestions] = useState<string[]>([]);
+  // 意見募集中の一覧に載せるか（載せると、X 以外の人からも意見が届きやすい）
+  const [isPublic, setIsPublic] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -69,6 +71,7 @@ export function NewLinkForm() {
       images,
       questions,
       makerName: makerName.trim(),
+      isPublic,
     });
     if (!r.ok) {
       setBusy(false);
@@ -171,6 +174,16 @@ export function NewLinkForm() {
           <input value={makerName} onChange={(e) => setMakerName(e.target.value)} maxLength={20} placeholder="例：きのと" aria-label="表示する名前" className={inputClass} />
         </Field>
       </Section>
+
+      <label className={`flex min-h-14 cursor-pointer items-start gap-3 rounded-xl border p-3 ${isPublic ? "border-leaf bg-leaf-tint" : "border-line bg-card"}`}>
+        <input type="checkbox" checked={isPublic} onChange={(e) => setIsPublic(e.target.checked)} className="mt-1 h-4 w-4 accent-[var(--leaf)]" />
+        <span className="flex flex-col gap-0.5">
+          <span className="text-sm font-bold">「意見募集中の一覧」に載せる</span>
+          <span className="text-xs leading-relaxed text-muted">
+            ほかの作り手が見て、答えてくれることがあります。載せるのは名前と表示名だけで、届いた意見は見せません。あとから外せます。
+          </span>
+        </span>
+      </label>
 
       {error && <p role="alert" className="text-sm font-bold text-coral">{error}</p>}
       <button type="button" onClick={submit} disabled={!canSubmit} className="min-h-12 rounded-full bg-coral px-6 font-bold text-night disabled:opacity-40">

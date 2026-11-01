@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useSyncExternalStore } from "react";
 
-import { deleteLink, fetchResults, fetchResultsByToken, type Response, type Results } from "@/lib/links";
+import { deleteLink, fetchResults, fetchResultsByToken, setLinkPublic, type Response, type Results } from "@/lib/links";
 import { QUESTION_COPY } from "@/lib/questions";
 import type { FeedbackLink, Question } from "@/lib/types";
 
@@ -47,7 +47,7 @@ export function LinkResults({ id, created, token }: { id: string; created: boole
     );
   }
 
-  const { link, responses, adminToken } = data;
+  const { link, responses, adminToken, isPublic } = data;
   const count = responses.length;
 
   async function remove() {
@@ -72,6 +72,8 @@ export function LinkResults({ id, created, token }: { id: string; created: boole
       <ShareCard link={link} highlight={created || count === 0} />
 
       {adminToken && <AdminUrlCard id={link.id} token={adminToken} highlight={created} />}
+
+      {isPublic !== null && <PublicToggle id={link.id} initial={isPublic} />}
 
       <section className="flex flex-col gap-3 rounded-2xl bg-peach-tint p-4">
         <h2 className="font-bold">AI のまとめ</h2>
@@ -139,6 +141,49 @@ function ShareCard({ link, highlight }: { link: FeedbackLink; highlight: boolean
       <Link href={`/l/${link.id}`} className="self-start text-sm font-bold text-muted underline-offset-4 hover:underline">
         答える画面を自分で見てみる ›
       </Link>
+    </section>
+  );
+}
+
+/** 意見募集中の一覧に載せる・外す（作った端末で開いたときだけ） */
+function PublicToggle({ id, initial }: { id: string; initial: boolean }) {
+  const [on, setOn] = useState(initial);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function toggle() {
+    setBusy(true);
+    setError(null);
+    const r = await setLinkPublic(id, !on);
+    setBusy(false);
+    if (!r.ok) return setError(r.message);
+    setOn(!on);
+  }
+
+  return (
+    <section className="flex flex-col gap-2 rounded-2xl border border-line bg-card p-4">
+      <div className="flex items-center gap-3">
+        <div className="flex flex-1 flex-col gap-0.5">
+          <h2 className="font-bold">意見募集中の一覧</h2>
+          <p className="text-sm text-muted">{on ? "載せています。ほかの作り手が見て、答えてくれることがあります。" : "載せていません。リンクを知っている人だけが答えられます。"}</p>
+        </div>
+        <button
+          type="button"
+          role="switch"
+          aria-checked={on}
+          aria-label="意見募集中の一覧に載せる"
+          onClick={toggle}
+          disabled={busy}
+          className={`relative h-8 w-14 shrink-0 rounded-full transition disabled:opacity-50 ${on ? "bg-leaf" : "bg-line"}`}
+        >
+          <span className={`absolute top-1 h-6 w-6 rounded-full bg-white shadow transition-all ${on ? "left-7" : "left-1"}`} />
+        </button>
+      </div>
+      {error && (
+        <p role="alert" className="text-sm font-bold text-coral">
+          {error}
+        </p>
+      )}
     </section>
   );
 }

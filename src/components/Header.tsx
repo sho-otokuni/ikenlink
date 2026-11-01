@@ -8,9 +8,14 @@ export function Header() {
         <span className="h-3 w-3 rounded-full bg-coral" aria-hidden />
         <span className="font-round text-base font-bold">意見リンク</span>
       </Link>
-      <Link href="/me" className="flex min-h-11 items-center rounded-full px-3 text-sm font-bold text-muted hover:text-ink">
-        自分のリンク
-      </Link>
+      <nav className="flex items-center">
+        <Link href="/list" className="flex min-h-11 items-center rounded-full px-3 text-sm font-bold text-muted hover:text-ink">
+          意見募集中
+        </Link>
+        <Link href="/me" className="flex min-h-11 items-center rounded-full px-3 text-sm font-bold text-muted hover:text-ink">
+          自分のリンク
+        </Link>
+      </nav>
     </header>
   );
 }

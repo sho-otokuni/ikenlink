@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
+import { markAnswered } from "@/lib/answered";
 import { submitResponse } from "@/lib/links";
 import { FIRST_LOOK_MS, QUESTION_COPY } from "@/lib/questions";
 import type { Answers, FeedbackLink, Question } from "@/lib/types";
@@ -42,6 +43,7 @@ export function AnswerFlow({ link }: { link: FeedbackLink }) {
     const r = await submitResponse(link.id, answers);
     setSending(false);
     if (!r.ok) return setError(r.message);
+    markAnswered(link.id);
     setStep("done");
   }
 
@@ -228,6 +230,10 @@ function Done({ makerName }: { makerName: string }) {
     <section className="flex flex-col items-start gap-5">
       <h1 className="font-round text-2xl font-bold leading-snug">ありがとうございます！</h1>
       <p className="leading-relaxed">あなたの意見は、{makerName}さんに届きました。一人で作っている人にとって、何よりの手がかりになります。</p>
+      {/* ほかの作り手にも答えてもらえるように */}
+      <Link href="/list" className="flex min-h-12 w-full items-center justify-center rounded-full bg-coral font-bold text-night">
+        ほかの作品にも答えてみる
+      </Link>
       {/* 答えた人が、次は作る側になれるように */}
       <div className="flex w-full flex-col gap-3 rounded-2xl bg-leaf-tint p-4">
         <p className="font-bold">あなたも、作ったものはありますか？</p>
