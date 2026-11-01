@@ -1,7 +1,6 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
   cacheComponents: true,
   partialPrefetching: true,
   turbopack: {
@@ -11,6 +10,14 @@ const nextConfig: NextConfig = {
         as: "*.css",
       },
     },
+  },
+  images: {
+    // 画面の写真は Supabase の保存場所から読む。仮のデータは picsum を使う
+    remotePatterns: [
+      { protocol: "https", hostname: "*.supabase.co" },
+      { protocol: "https", hostname: "picsum.photos" },
+      { protocol: "https", hostname: "fastly.picsum.photos" },
+    ],
   },
 };
 

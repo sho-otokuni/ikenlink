@@ -1,26 +1,56 @@
 @import "tailwindcss";
 
+/*
+ * 意見リンクの色。画面ごとに色コードを直書きせず、ここの名前（bg-coral など）を使う。
+ * コーラル・ピーチ・グリーンの上の文字は白にせず、ネイビーにする（読みやすさ）。
+ */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --bg: #fff9f5;
+  --card: #ffffff;
+  --ink: #1c1838;
+  --muted: #5e5c66;
+  --line: #e6e3dd;
+  --coral: #ee6f55;
+  --coral-tint: #fde6e0;
+  --peach: #ffb067;
+  --peach-tint: #fff0e0;
+  --leaf: #78c48c;
+  --leaf-tint: #e6f4ea;
+  --night: #1c1838;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-bg: var(--bg);
+  --color-card: var(--card);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-coral: var(--coral);
+  --color-coral-tint: var(--coral-tint);
+  --color-peach: var(--peach);
+  --color-peach-tint: var(--peach-tint);
+  --color-leaf: var(--leaf);
+  --color-leaf-tint: var(--leaf-tint);
+  --color-night: var(--night);
+  --font-sans: var(--font-noto), system-ui, sans-serif;
+  --font-round: var(--font-zen), var(--font-noto), system-ui, sans-serif;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --bg: #000000;
+    --card: #14121f;
+    --ink: #f4f2fa;
+    --muted: #a9a6b8;
+    --line: #2a2738;
+    --coral-tint: #3a1e19;
+    --peach-tint: #3a2a18;
+    --leaf-tint: #183224;
   }
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-noto), system-ui, sans-serif;
 }
