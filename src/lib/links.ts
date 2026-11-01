@@ -8,6 +8,8 @@ const NOT_READY = "まだデータベースにつながっていません（.env
 /** 作った人が見る、リンクと届いた意見 */
 export type MyLink = FeedbackLink & { createdAt: string; responseCount: number; lastResponseAt: string | null };
 export type Response = { id: string; answers: Answers; createdAt: string };
+/** 意見を見る画面に出すもの。adminToken は、作った人が自分の端末で開いたときだけ入る */
+export type Results = { link: FeedbackLink; responses: Response[]; adminToken: string | null };
 
 type LinkRow = {
   id: string;
@@ -82,6 +84,12 @@ function newId() {
   return Array.from(crypto.getRandomValues(new Uint8Array(8)), (n) => chars[n % chars.length]).join("");
 }
 
+/** 管理用の URL の合言葉（推測できない32文字） */
+function newToken() {
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789";
+  return Array.from(crypto.getRandomValues(new Uint8Array(32)), (n) => chars[n % chars.length]).join("");
+}
+
 async function dataUrlToBlob(dataUrl: string) {
   return (await fetch(dataUrl)).blob();
 }
@@ -111,6 +119,8 @@ export async function createLink(draft: LinkDraft): Promise<Result<string>> {
     maker_name: draft.makerName,
   });
   if (error) return { ok: false, message: `リンクを作れませんでした。${NETWORK}` };
+  // 管理用の URL の合言葉（ほかの端末から意見を見るため）。失敗しても、この端末からは見られるので続ける
+  await supabase.from("link_secrets").insert({ link_id: id, admin_token: newToken() });
   return { ok: true, data: id };
 }
 
@@ -139,13 +149,14 @@ export async function fetchMyLinks(): Promise<Result<MyLink[]>> {
 }
 
 /** 自分のリンク1本と、届いた意見（新しい順）。自分のものでなければ null */
-export async function fetchResults(id: string): Promise<Result<{ link: FeedbackLink; responses: Response[] } | null>> {
+export async function fetchResults(id: string): Promise<Result<Results | null>> {
   if (!isSupabaseConfigured) return { ok: false, message: NOT_READY };
   const uid = await currentUserId();
   if (!uid) return { ok: true, data: null };
-  const [{ data: row, error }, { data: rows }] = await Promise.all([
+  const [{ data: row, error }, { data: rows }, { data: secret }] = await Promise.all([
     supabase.from("links").select(LINK_COLUMNS).eq("id", id).eq("owner_id", uid).maybeSingle<LinkRow>(),
     supabase.from("responses").select("id, answers, created_at").eq("link_id", id).order("created_at", { ascending: false }),
+    supabase.from("link_secrets").select("admin_token").eq("link_id", id).maybeSingle<{ admin_token: string }>(),
   ]);
   if (error) return { ok: false, message: `読み込めませんでした。${NETWORK}` };
   if (!row) return { ok: true, data: null };
@@ -154,6 +165,24 @@ export async function fetchResults(id: string): Promise<Result<{ link: FeedbackL
     data: {
       link: toLink(row),
       responses: ((rows ?? []) as { id: string; answers: Answers; created_at: string }[]).map((r) => ({ id: r.id, answers: r.answers, createdAt: r.created_at })),
+      adminToken: secret?.admin_token ?? null,
+    },
+  };
+}
+
+/** 管理用の URL（合言葉）で、どの端末からでも意見を見る。合言葉が違えば null */
+export async function fetchResultsByToken(id: string, token: string): Promise<Result<Results | null>> {
+  if (!isSupabaseConfigured) return { ok: false, message: NOT_READY };
+  const { data, error } = await supabase.rpc("results_by_token", { p_link: id, p_token: token });
+  if (error) return { ok: false, message: `読み込めませんでした。${NETWORK}` };
+  if (!data) return { ok: true, data: null };
+  const d = data as { link: LinkRow; responses: { id: string; answers: Answers; created_at: string }[] };
+  return {
+    ok: true,
+    data: {
+      link: toLink(d.link),
+      responses: d.responses.map((r) => ({ id: r.id, answers: r.answers, createdAt: r.created_at })),
+      adminToken: null,
     },
   };
 }

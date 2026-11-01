@@ -4,22 +4,25 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useSyncExternalStore } from "react";
 
-import { deleteLink, fetchResults, type Response } from "@/lib/links";
+import { deleteLink, fetchResults, fetchResultsByToken, type Response, type Results } from "@/lib/links";
 import { QUESTION_COPY } from "@/lib/questions";
 import type { FeedbackLink, Question } from "@/lib/types";
 
 /** AI のまとめを出せるようになる、意見の数 */
 const SUMMARY_MIN = 5;
 
-export function LinkResults({ id, created }: { id: string; created: boolean }) {
+/**
+ * 届いた意見を見る画面。作った端末なら自分のものとして、管理用の URL（token あり）なら合言葉で読む
+ */
+export function LinkResults({ id, created, token }: { id: string; created: boolean; token: string | null }) {
   const router = useRouter();
   // undefined＝読み込み中／null＝見つからない（自分のものでない）
-  const [data, setData] = useState<{ link: FeedbackLink; responses: Response[] } | null | undefined>(undefined);
+  const [data, setData] = useState<Results | null | undefined>(undefined);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let alive = true;
-    fetchResults(id).then((r) => {
+    (token ? fetchResultsByToken(id, token) : fetchResults(id)).then((r) => {
       if (!alive) return;
       if (r.ok) setData(r.data);
       else setError(r.message);
@@ -27,20 +30,24 @@ export function LinkResults({ id, created }: { id: string; created: boolean }) {
     return () => {
       alive = false;
     };
-  }, [id]);
+  }, [id, token]);
 
   if (error) return <p role="alert" className="text-sm font-bold text-coral">{error}</p>;
   if (data === undefined) return <div className="h-40 rounded-2xl bg-line" aria-busy />;
   if (data === null) {
     return (
       <div className="flex flex-col items-start gap-4">
-        <p>このリンクは見つかりませんでした。消したか、別の端末やブラウザで作ったものかもしれません。</p>
+        <p>
+          {token
+            ? "このリンクは見つかりませんでした。管理用の URL が途中で切れていないか、確かめてください。"
+            : "このリンクは見つかりませんでした。別の端末やブラウザで作ったときは、リンクを作ったときの「管理用の URL」から開いてください。"}
+        </p>
         <Link href="/me" className="font-bold text-coral">自分のリンクへ</Link>
       </div>
     );
   }
 
-  const { link, responses } = data;
+  const { link, responses, adminToken } = data;
   const count = responses.length;
 
   async function remove() {
@@ -58,7 +65,13 @@ export function LinkResults({ id, created }: { id: string; created: boolean }) {
         <p className="text-sm text-muted">届いた意見 {count}件</p>
       </div>
 
+      {token && (
+        <p className="rounded-xl bg-leaf-tint px-3 py-2 text-sm leading-relaxed">管理用の URL で開いています。この URL は、ほかの人に見せないでください。</p>
+      )}
+
       <ShareCard link={link} highlight={created || count === 0} />
+
+      {adminToken && <AdminUrlCard id={link.id} token={adminToken} highlight={created} />}
 
       <section className="flex flex-col gap-3 rounded-2xl bg-peach-tint p-4">
         <h2 className="font-bold">AI のまとめ</h2>
@@ -75,9 +88,12 @@ export function LinkResults({ id, created }: { id: string; created: boolean }) {
         <p className="text-sm leading-relaxed text-muted">まだ意見は届いていません。上のリンクを X や友だちに送ってみましょう。</p>
       )}
 
-      <button type="button" onClick={remove} className="min-h-11 self-center rounded-full px-4 text-sm text-muted hover:text-coral">
-        このリンクを消す
-      </button>
+      {/* 消せるのは、作った端末で開いたときだけ */}
+      {!token && (
+        <button type="button" onClick={remove} className="min-h-11 self-center rounded-full px-4 text-sm text-muted hover:text-coral">
+          このリンクを消す
+        </button>
+      )}
     </div>
   );
 }
@@ -123,6 +139,36 @@ function ShareCard({ link, highlight }: { link: FeedbackLink; highlight: boolean
       <Link href={`/l/${link.id}`} className="self-start text-sm font-bold text-muted underline-offset-4 hover:underline">
         答える画面を自分で見てみる ›
       </Link>
+    </section>
+  );
+}
+
+/** 意見を見るための、自分専用の URL。ほかの端末やブラウザからも、これで見られる */
+function AdminUrlCard({ id, token, highlight }: { id: string; token: string; highlight: boolean }) {
+  const origin = useOrigin();
+  const [copied, setCopied] = useState(false);
+  const adminUrl = `${origin}/me/${id}?k=${token}`;
+
+  async function copy() {
+    try {
+      await navigator.clipboard.writeText(adminUrl);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      window.prompt("この URL をコピーして、メモやブックマークに残してください", adminUrl);
+    }
+  }
+
+  return (
+    <section className={`flex flex-col gap-3 rounded-2xl border p-4 ${highlight ? "border-peach bg-peach-tint" : "border-line bg-card"}`}>
+      <h2 className="font-bold">意見を見るための、自分専用の URL</h2>
+      <p className="text-sm leading-relaxed">
+        いまのブラウザ以外（ほかのスマホ、パソコン、X のアプリの外など）から意見を見るときに使います。メモやブックマークに残しておいてください。
+        <strong>この URL を知っている人は意見を読めるので、人には送らないでください。</strong>
+      </p>
+      <button type="button" onClick={copy} className="min-h-11 rounded-full border border-line bg-card px-4 text-sm font-bold">
+        {copied ? "コピーしました" : "自分専用の URL をコピー"}
+      </button>
     </section>
   );
 }

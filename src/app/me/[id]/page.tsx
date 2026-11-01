@@ -4,7 +4,7 @@ import { Suspense } from "react";
 import { Header } from "@/components/Header";
 import { LinkResults } from "@/components/LinkResults";
 
-export const metadata: Metadata = { title: "届いた意見｜意見リンク" };
+export const metadata: Metadata = { title: "届いた意見｜意見リンク", robots: { index: false, follow: false } };
 
 /** 作った人が、リンクを共有し、届いた意見を見る画面 */
 export default function ResultsPage(props: PageProps<"/me/[id]">) {
@@ -24,5 +24,7 @@ export default function ResultsPage(props: PageProps<"/me/[id]">) {
 // （画面側で読むと、URL を直接開いたときに読み込み中のまま止まることがあったため）
 async function Results({ params, searchParams }: Pick<PageProps<"/me/[id]">, "params" | "searchParams">) {
   const [{ id }, query] = await Promise.all([params, searchParams]);
-  return <LinkResults id={id} created={query.created === "1"} />;
+  // k は管理用の URL の合言葉（どの端末からでも意見を見られる）
+  const token = typeof query.k === "string" && /^[A-Za-z0-9]{24,64}$/.test(query.k) ? query.k : null;
+  return <LinkResults id={id} created={query.created === "1"} token={token} />;
 }
