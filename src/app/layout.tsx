@@ -15,9 +15,18 @@ const zen = Zen_Maru_Gothic({
   weight: ["500", "700"],
 });
 
+/** 画像カードなどの URL の土台。独自ドメインにしたら NEXT_PUBLIC_SITE_URL に入れる */
+const siteUrl =
+  process.env.NEXT_PUBLIC_SITE_URL ??
+  (process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : "http://localhost:3000");
+
 export const metadata: Metadata = {
+  metadataBase: new URL(siteUrl),
   title: "意見リンク",
   description: "作ったものの URL を貼るだけで、意見が集まるリンクができる。答える人は登録なし、30秒。",
+  openGraph: { siteName: "意見リンク", locale: "ja_JP", type: "website" },
+  // X では、大きな画像付きのカードで出す
+  twitter: { card: "summary_large_image" },
 };
 
 export const viewport: Viewport = {
