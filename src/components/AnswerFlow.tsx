@@ -108,7 +108,7 @@ function About({ link }: { link: FeedbackLink }) {
         >
           <LinkIcon />
           <span className="flex min-w-0 flex-1 flex-col">
-            <span className="text-sm font-bold">{link.kind === "app" ? "サービスのリンク" : "参考のリンク"}</span>
+            <span className="text-sm font-bold">リンク</span>
             {/* どこへ飛ぶのか分かるよう、URL もそのまま見せる */}
             <span className="truncate text-xs underline underline-offset-2">{link.url.replace(/^https?:\/\//, "").replace(/\/$/, "")}</span>
           </span>
