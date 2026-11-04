@@ -167,8 +167,17 @@ function newToken() {
   return Array.from(crypto.getRandomValues(new Uint8Array(32)), (n) => chars[n % chars.length]).join("");
 }
 
-async function dataUrlToBlob(dataUrl: string) {
-  return (await fetch(dataUrl)).blob();
+/**
+ * data URL（data:image/jpeg;base64,...）をファイルの形にする。
+ * fetch(dataUrl) は使わない：公開した版では、ブラウザの守りの決まり（CSP の connect-src）で data: への通信が止められ、保存が終わらなくなったため
+ */
+function dataUrlToBlob(dataUrl: string) {
+  const [head, body] = dataUrl.split(",", 2);
+  const type = /^data:([^;]+)/.exec(head)?.[1] ?? "application/octet-stream";
+  const bin = atob(body ?? "");
+  const bytes = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+  return new Blob([bytes], { type });
 }
 
 export type LinkDraft = Omit<FeedbackLink, "id"> & { /** 意見募集中の一覧に載せるか */ isPublic: boolean };
@@ -187,8 +196,13 @@ export async function uploadImage(linkId: string, dataUrl: string): Promise<stri
   const uid = await ensureUser();
   if (!uid) return null;
   const path = `${uid}/${linkId}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.jpg`;
-  const { error } = await supabase.storage.from("link-images").upload(path, await dataUrlToBlob(dataUrl), { contentType: "image/jpeg" });
-  return error ? null : supabase.storage.from("link-images").getPublicUrl(path).data.publicUrl;
+  try {
+    const { error } = await supabase.storage.from("link-images").upload(path, dataUrlToBlob(dataUrl), { contentType: "image/jpeg" });
+    return error ? null : supabase.storage.from("link-images").getPublicUrl(path).data.publicUrl;
+  } catch {
+    // 通信が切れたなど。保存を押したときに置き直す
+    return null;
+  }
 }
 
 /** リンクを作る。画面の写真（data URL）は保存場所に置いて、その URL を残す。id は先に決めておいたものを使える */

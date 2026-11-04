@@ -110,9 +110,22 @@ export function NewLinkForm({ editing }: { editing?: EditTarget }) {
     setKinds((list) => (list.includes(k) ? list.filter((x) => x !== k) : [...list, k]));
   }
 
+  /**
+   * 保存を押したとき。思わぬ失敗（通信が切れたなど）でも「保存しています…」のまま止まらないよう、
+   * 必ずボタンを戻して、知らせを出す
+   */
   async function submit() {
-    setError(null);
     if (!canSubmit) return;
+    try {
+      await save();
+    } catch {
+      setBusy(false);
+      setError("保存できませんでした。通信環境を確かめて、もう一度お試しください");
+    }
+  }
+
+  async function save() {
+    setError(null);
     const cleanUrls = urls.map((u) => u.trim()).filter(Boolean);
     if (cleanUrls.some((u) => !/^https?:\/\/\S+$/.test(u))) return setError("URL は https:// から始まる形で入れてください");
     if (deadline === "date" && !deadlineDate) return setError("締め切りの日付を選んでください");
@@ -151,7 +164,8 @@ export function NewLinkForm({ editing }: { editing?: EditTarget }) {
         return setError(saved.message);
       }
       setBusy(false);
-      router.push(`/me/${editing.link.id}?saved=1`);
+      // saved に毎回ちがう値を付けて、届いた意見の画面を作り直す（前に開いたときの古い中身が一瞬出ないように）
+      router.push(`/me/${editing.link.id}?saved=${new Date().getTime().toString(36)}`);
       return;
     }
     const r = await createLink({ ...draft, questions: questions ?? [] }, id);
