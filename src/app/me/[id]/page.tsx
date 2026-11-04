@@ -26,5 +26,5 @@ async function Results({ params, searchParams }: Pick<PageProps<"/me/[id]">, "pa
   const [{ id }, query] = await Promise.all([params, searchParams]);
   // k は管理用の URL の合言葉（どの端末からでも意見を見られる）
   const token = typeof query.k === "string" && /^[A-Za-z0-9]{24,64}$/.test(query.k) ? query.k : null;
-  return <LinkResults id={id} created={query.created === "1"} token={token} />;
+  return <LinkResults id={id} created={query.created === "1"} saved={query.saved === "1"} token={token} />;
 }

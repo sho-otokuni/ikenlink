@@ -1,14 +1,15 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState, useSyncExternalStore } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 
 import { CalendarIcon } from "@/components/icons";
 import { KindLabel } from "@/components/KindLabel";
+import { getAccount, setDisplayName } from "@/lib/auth";
 import { shrinkImage } from "@/lib/image";
-import { createLink } from "@/lib/links";
+import { createLink, updateLink } from "@/lib/links";
 import { DEADLINES, deadlineAfter, deadlineOn, formatDay, LINK_KINDS, QUESTION_COPY, TEMPLATE_KINDS } from "@/lib/questions";
-import type { LinkKind, Question, QuestionKind } from "@/lib/types";
+import type { FeedbackLink, LinkKind, Question, QuestionKind } from "@/lib/types";
 
 const MAX_IMAGES = 4;
 const MAX_FREE = 2;
@@ -29,27 +30,60 @@ function useToday() {
   );
 }
 
-/** 意見を募集する。画像1枚だけでも、URL だけでも始められる */
-export function NewLinkForm() {
+/** yyyy-mm-dd（端末の時刻で） */
+function dayString(iso: string) {
+  const d = new Date(iso);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
+/** 直すときに渡す、いまの中身 */
+export type EditTarget = { link: FeedbackLink; isPublic: boolean; responseCount: number };
+
+/**
+ * 意見を募集する。画像1枚だけでも、URL だけでも始められる。
+ * editing を渡すと、作った募集を直す画面になる（意見が届いたあとは、質問だけは変えられない）
+ */
+export function NewLinkForm({ editing }: { editing?: EditTarget }) {
   const router = useRouter();
-  const [kind, setKind] = useState<LinkKind>("idea");
-  const [title, setTitle] = useState("");
-  const [images, setImages] = useState<string[]>([]);
-  const [tagline, setTagline] = useState("");
-  const [urls, setUrls] = useState<string[]>([""]);
-  const [kinds, setKinds] = useState<QuestionKind[]>(TEMPLATE_KINDS.filter((t) => t.on).map((t) => t.kind));
-  const [freeQuestions, setFreeQuestions] = useState<string[]>([]);
-  // 締め切り：DEADLINES の id か、"date"（日付を選ぶ）
-  const [deadline, setDeadline] = useState("1w");
-  const [deadlineDate, setDeadlineDate] = useState("");
+  const start = editing?.link;
+  const [kind, setKind] = useState<LinkKind>(start?.kind ?? "idea");
+  const [title, setTitle] = useState(start?.title ?? "");
+  const [images, setImages] = useState<string[]>(start?.images ?? []);
+  const [tagline, setTagline] = useState(start?.tagline ?? "");
+  const [urls, setUrls] = useState<string[]>(start?.urls.length ? start.urls : [""]);
+  const [kinds, setKinds] = useState<QuestionKind[]>(
+    start ? start.questions.map((q) => q.kind).filter((k) => TEMPLATE_KINDS.some((t) => t.kind === k)) : TEMPLATE_KINDS.filter((t) => t.on).map((t) => t.kind),
+  );
+  const [freeQuestions, setFreeQuestions] = useState<string[]>(start ? start.questions.filter((q) => q.kind === "free").map((q) => q.text ?? "") : []);
+  // 意見が届いたあとは、答えと質問がずれないよう、質問は変えられない
+  const questionsLocked = (editing?.responseCount ?? 0) > 0;
+  // 締め切り：DEADLINES の id か、"date"（日付を選ぶ）。直すときは、いまの締め切りの日付から始める
+  const [deadline, setDeadline] = useState(start ? (start.closesAt ? "date" : "none") : "1w");
+  const [deadlineDate, setDeadlineDate] = useState(start?.closesAt ? dayString(start.closesAt) : "");
   // 公開すると、意見募集中の一覧に並び、だれでも答えられる
-  const [isPublic, setIsPublic] = useState(true);
-  const [makerName, setMakerName] = useState("");
+  const [isPublic, setIsPublic] = useState(editing?.isPublic ?? true);
+  const [makerName, setMakerName] = useState(start?.makerName ?? "");
+  // プロフィールに保存してある「表示する名前」（なければ空。初めて募集したときに保存する）
+  const [profileName, setProfileName] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const today = useToday();
 
-  const questionCount = kinds.length + freeQuestions.filter((q) => q.trim()).length;
+  // プロフィールの名前を、表示する名前の欄に入れておく（もう何か書いてあれば上書きしない）
+  useEffect(() => {
+    let alive = true;
+    getAccount().then((a) => {
+      if (!alive) return;
+      const name = a.state === "none" ? "" : a.displayName;
+      setProfileName(name);
+      if (name) setMakerName((v) => v || name);
+    });
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  const questionCount = questionsLocked && editing ? editing.link.questions.length : kinds.length + freeQuestions.filter((q) => q.trim()).length;
   const canSubmit = title.trim() !== "" && makerName.trim() !== "" && questionCount > 0 && !busy;
 
   const closesAt = (() => {
@@ -77,29 +111,41 @@ export function NewLinkForm() {
     if (cleanUrls.some((u) => !/^https?:\/\/\S+$/.test(u))) return setError("URL は https:// から始まる形で入れてください");
     if (deadline === "date" && !deadlineDate) return setError("締め切りの日付を選んでください");
     setBusy(true);
-    // 並びは型の順、自由な質問は最後
-    const questions: Question[] = [
+    // 並びは型の順、自由な質問は最後（直すときに質問を変えられないなら、そのまま）
+    const questions: Question[] | null = questionsLocked ? null : [
       ...TEMPLATE_KINDS.filter((t) => kinds.includes(t.kind)).map((t, i) => ({ id: `q${i + 1}`, kind: t.kind })),
       ...freeQuestions
         .map((text) => text.trim())
         .filter(Boolean)
         .map((text, i) => ({ id: `f${i + 1}`, kind: "free" as const, text })),
     ];
-    const r = await createLink({
+    const draft = {
       kind,
       title: title.trim(),
       tagline: tagline.trim() || null,
       urls: cleanUrls,
       images,
-      questions,
       makerName: makerName.trim(),
       closesAt: closesAt?.toISOString() ?? null,
       isPublic,
-    });
+    };
+    if (editing) {
+      const saved = await updateLink(editing.link.id, { ...draft, questions }, editing.link.images);
+      if (!saved.ok) {
+        setBusy(false);
+        return setError(saved.message);
+      }
+      setBusy(false);
+      router.push(`/me/${editing.link.id}?saved=1`);
+      return;
+    }
+    const r = await createLink({ ...draft, questions: questions ?? [] });
     if (!r.ok) {
       setBusy(false);
       return setError(r.message);
     }
+    // プロフィールに名前がまだなければ、いま使った名前を保存しておく（次からは自動で入る）。失敗しても募集はできている
+    if (!profileName) await setDisplayName(makerName);
     router.push(`/me/${r.data}?created=1`);
   }
 
@@ -211,6 +257,12 @@ export function NewLinkForm() {
       </Section>
 
       <Section title="聞きたいこと">
+        {questionsLocked && (
+          <p className="rounded-xl bg-peach-tint px-3 py-2 text-xs leading-relaxed">
+            もう意見が {editing?.responseCount} 件届いているので、質問は変えられません（届いた答えと質問がずれないように）。
+          </p>
+        )}
+        <fieldset disabled={questionsLocked} className={`m-0 border-0 p-0 ${questionsLocked ? "opacity-50" : ""}`}>
         <div className="flex flex-col gap-2 lg:grid lg:grid-cols-2">
           {TEMPLATE_KINDS.map((t) => {
             const on = kinds.includes(t.kind);
@@ -254,6 +306,7 @@ export function NewLinkForm() {
             </button>
           )}
         </div>
+        </fieldset>
       </Section>
 
       <div className="flex flex-col gap-5 lg:grid lg:grid-cols-2 lg:gap-6 lg:rounded-2xl lg:border lg:border-line lg:bg-card lg:p-5">
@@ -285,7 +338,7 @@ export function NewLinkForm() {
       <Section title="公開範囲" plain>
         <div role="radiogroup" aria-label="公開範囲" className="flex flex-col gap-2">
           <ScopeOption checked={isPublic} onSelect={() => setIsPublic(true)} title="公開する（だれでも答えられる）">
-            「意見募集中」の一覧に並び、だれでも答えられます。ほかの募集に答えるほど、前に出やすくなります。
+            「意見募集中」の一覧に並び、だれでも答えられます。ほかの意見に答えるほど、前に出やすくなります。
           </ScopeOption>
           <ScopeOption checked={!isPublic} onSelect={() => setIsPublic(false)} title="リンクを知っている人だけ">
             一覧には並びません。送った相手だけが答えられます。
@@ -297,7 +350,16 @@ export function NewLinkForm() {
 
       <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:gap-4">
       <div className="lg:flex-1">
-      <Field label="表示する名前" required note="「〇〇さんが意見を募集しています」と出ます。ニックネームで大丈夫です" noteBelow>
+      <Field
+        label="表示する名前"
+        required
+        note={
+          profileName && makerName.trim() === profileName
+            ? "プロフィールの名前が入っています。変えたいときは、自分のリンクの画面のプロフィールから"
+            : "「〇〇さんが意見を募集しています」と出ます。ニックネームで大丈夫です"
+        }
+        noteBelow
+      >
         <input value={makerName} onChange={(e) => setMakerName(e.target.value)} maxLength={20} placeholder="例：きのと" aria-label="表示する名前" className={inputClass} />
       </Field>
       </div>
@@ -305,7 +367,7 @@ export function NewLinkForm() {
       <div className="flex flex-col gap-1.5 lg:mt-6 lg:w-64">
         {error && <p role="alert" className="text-sm font-bold text-coral">{error}</p>}
         <button type="button" onClick={submit} disabled={!canSubmit} className="min-h-12 rounded-full bg-coral px-6 font-bold text-night disabled:opacity-40">
-          {busy ? "準備しています…" : "募集を始める"}
+          {busy ? "保存しています…" : editing ? "変更を保存する" : "募集を始める"}
         </button>
         <p className="text-center text-xs text-muted lg:hidden">質問は {questionCount} 個。答える人は30秒ほどで答えられます。</p>
       </div>

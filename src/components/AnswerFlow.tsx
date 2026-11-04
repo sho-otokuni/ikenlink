@@ -163,7 +163,7 @@ function Onward() {
   return (
     <>
       <Link href="/list" className="flex min-h-12 w-full items-center justify-center rounded-full bg-coral px-4 text-center font-bold text-night">
-        一覧でほかの募集に答える
+        一覧でほかの意見に答える
       </Link>
       <Link href="/" className="-mt-1.5 flex min-h-12 w-full items-center justify-center rounded-full border border-line bg-card font-bold">
         ホームに戻る

@@ -19,13 +19,17 @@ export default function Home() {
       <main className={`${PAGE_WIDTH} flex flex-1 flex-col gap-[18px] px-3 pb-16 pt-4 lg:gap-10 lg:px-0 lg:pt-14`}>
         <div className="flex flex-col gap-[18px] lg:grid lg:grid-cols-[1fr_460px] lg:items-center lg:gap-14">
           <section className="flex flex-col gap-3 lg:gap-5">
-            <h1 className="font-round text-[32px] font-bold leading-snug lg:text-[56px] lg:leading-tight">
-              「どう思う？」を、
+            <h1 className="font-round text-[28px] font-bold leading-snug lg:text-[48px] lg:leading-tight">
+              「これ、どう思う？」を、
               <br />
-              気軽に聞ける。
+              気軽に。
             </h1>
             <p className="text-sm leading-relaxed text-muted lg:text-[17px] lg:leading-loose">
-              アイデア、デザイン、作ったもの、文章。画像や URL を貼るだけで、意見が集まるリンクができます。答える人は登録なし、30秒。
+              思いついたアイデアも、つくりかけのものも。
+              <br />
+              画像やURLを貼って共有して、感想をもらってみませんか。
+              <br />
+              答える人は、リンクを開いてそのまま回答できます。
             </p>
             <div className="flex flex-col gap-2 sm:flex-row lg:gap-3">
               <Link href="/new" className="flex min-h-12 items-center justify-center rounded-full bg-coral px-6 font-bold text-night sm:flex-1 lg:min-h-13 lg:flex-none lg:px-7">

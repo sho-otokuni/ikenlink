@@ -42,7 +42,8 @@ function clip(text: string, max: number) {
   return text.length > max ? `${text.slice(0, max)}…` : text;
 }
 
-function Frame({ children, footer }: { children: React.ReactNode; footer: string }) {
+/** 右側に置くもの。画像があればその画像、なければ吹き出しの飾り */
+function Frame({ children, footer, image }: { children: React.ReactNode; footer: string; image?: string | null }) {
   return (
     <div
       style={{
@@ -59,7 +60,7 @@ function Frame({ children, footer }: { children: React.ReactNode; footer: string
         position: "relative",
       }}
     >
-      <Bubbles />
+      {image ? <Picture src={image} /> : <Bubbles />}
       <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
         <Mark />
         <div style={{ fontFamily: "Zen", fontSize: 34 }}>意見リンク</div>
@@ -70,6 +71,47 @@ function Frame({ children, footer }: { children: React.ReactNode; footer: string
       </div>
     </div>
   );
+}
+
+/** 募集の1枚目の画像（右側に、角を丸めて切り抜いて置く） */
+function Picture({ src }: { src: string }) {
+  return (
+    <div
+      style={{
+        position: "absolute",
+        right: 64,
+        top: 56,
+        width: 440,
+        height: 486,
+        display: "flex",
+        borderRadius: 32,
+        overflow: "hidden",
+        border: `4px solid ${C.line}`,
+        background: "#FFFFFF",
+      }}
+    >
+      {/* eslint-disable-next-line @next/next/no-img-element -- 画像カードを作る道具（next/og）の中では、ふつうの img を使う */}
+      <img src={src} alt="" width={440} height={486} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+    </div>
+  );
+}
+
+/**
+ * 画像カードに載せる画像を読み込んで、カードの中に埋め込める形（data URL）にする。
+ * 読めない・大きすぎる・画像でないときは null（そのときは画像なしのカードにする）
+ */
+async function loadPicture(url: string | null | undefined): Promise<string | null> {
+  if (!url) return null;
+  try {
+    const res = await fetch(url, { signal: AbortSignal.timeout(4000) });
+    const type = res.headers.get("content-type") ?? "";
+    if (!res.ok || !/^image\/(jpeg|png)$/.test(type)) return null;
+    const buf = await res.arrayBuffer();
+    if (buf.byteLength > 2_500_000) return null;
+    return `data:${type};base64,${Buffer.from(buf).toString("base64")}`;
+  } catch {
+    return null;
+  }
 }
 
 /** ロゴのマーク（2つの吹き出しが絡み合う）。components/Logo.tsx と同じ形 */
@@ -138,17 +180,21 @@ export async function siteCard() {
   );
 }
 
-/** 募集ごとのカード（タイトルと、募集している人） */
-export async function linkCard(title: string, makerName: string) {
-  const t = clip(title, 28);
+/** 募集ごとのカード（タイトルと、募集している人）。画像を貼った募集なら、1枚目の画像も右に載せる */
+export async function linkCard(title: string, makerName: string, imageUrl?: string | null) {
+  const image = await loadPicture(imageUrl);
+  // 画像があるときは、文字を左の半分ほどに収める
+  const width = image ? 560 : 700;
+  const t = clip(title, image ? 24 : 28);
   const lead = `${clip(makerName, 12)}さんが、意見を募集しています`;
   const footer = "30秒・登録なしで答えられます";
+  const size = image ? (t.length > 8 ? 60 : 80) : t.length > 10 ? 72 : 96;
   return new ImageResponse(
     (
-      <Frame footer={footer}>
+      <Frame footer={footer} image={image}>
         <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-          <div style={{ fontSize: 34, color: C.muted, maxWidth: 700 }}>{lead}</div>
-          <div style={{ display: "flex", maxWidth: 700, fontFamily: "Zen", fontSize: t.length > 10 ? 72 : 96, lineHeight: 1.2 }}>{t}</div>
+          <div style={{ fontSize: image ? 30 : 34, color: C.muted, maxWidth: width }}>{lead}</div>
+          <div style={{ display: "flex", maxWidth: width, fontFamily: "Zen", fontSize: size, lineHeight: 1.2 }}>{t}</div>
         </div>
       </Frame>
     ),

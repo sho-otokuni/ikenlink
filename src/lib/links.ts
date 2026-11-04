@@ -62,8 +62,9 @@ function toLink(row: LinkRow): FeedbackLink {
 /** 答える画面に出すリンク。見つからなければ null */
 export async function getLink(id: string): Promise<FeedbackLink | null> {
   if (!isSupabaseConfigured || !/^[a-z0-9]{1,16}$/.test(id)) return null;
-  const { data } = await supabase.from("links").select(LINK_COLUMNS).eq("id", id).maybeSingle<LinkRow>();
-  return data ? toLink(data) : null;
+  // 募集の表は持ち主しか読めない（「リンクを知っている人だけ」を一覧されないため）。id を知っている人は、この関数から1件だけ読める
+  const { data } = await supabase.rpc("get_link", { p_id: id });
+  return data ? toLink(data as LinkRow) : null;
 }
 
 /**
@@ -76,6 +77,7 @@ export async function submitResponse(linkId: string, answers: Answers): Promise<
   const cleaned = Object.fromEntries(Object.entries(answers).map(([k, v]) => [k, v.trim().slice(0, 500)]).filter(([, v]) => v));
   const { error } = await supabase.from("responses").insert({ link_id: linkId, answers: cleaned });
   if (error?.message.includes("too_many_responses")) return { ok: false, message: "いま意見が集中しています。少し待ってから、もう一度送ってください" };
+  if (error?.message.includes("invalid_answers")) return { ok: false, message: "送れない内容が入っていました。ページを読み込み直して、もう一度お試しください" };
   // 締め切りを過ぎていると、データベースの権限で断られる
   if (error?.code === "42501") return { ok: false, message: "この募集は締め切られました" };
   if (error) return { ok: false, message: `送れませんでした。${NETWORK}` };
@@ -134,13 +136,8 @@ export async function createLink(draft: LinkDraft): Promise<Result<string>> {
   const uid = await ensureUser();
   if (!uid) return { ok: false, message: `始められませんでした。${NETWORK}` };
   const id = newId();
-  const images: string[] = [];
-  for (const [i, src] of draft.images.entries()) {
-    const path = `${uid}/${id}/${i + 1}.jpg`;
-    const { error } = await supabase.storage.from("link-images").upload(path, await dataUrlToBlob(src), { contentType: "image/jpeg" });
-    if (error) return { ok: false, message: `写真を保存できませんでした。${NETWORK}` };
-    images.push(supabase.storage.from("link-images").getPublicUrl(path).data.publicUrl);
-  }
+  const images = await uploadImages(uid, id, draft.images);
+  if (!images) return { ok: false, message: `写真を保存できませんでした。${NETWORK}` };
   const { error } = await supabase.from("links").insert({
     id,
     kind: draft.kind,
@@ -154,10 +151,74 @@ export async function createLink(draft: LinkDraft): Promise<Result<string>> {
     closes_at: draft.closesAt,
     is_public: draft.isPublic,
   });
+  if (error?.message.includes("too_many_links")) return { ok: false, message: "1時間に作れる募集は20件までです。少し時間をおいてから、もう一度お試しください" };
   if (error) return { ok: false, message: `リンクを作れませんでした。${NETWORK}` };
   // 管理用の URL の合言葉（ほかの端末から意見を見るため）。失敗しても、この端末からは見られるので続ける
   await supabase.from("link_secrets").insert({ link_id: id, admin_token: newToken() });
   return { ok: true, data: id };
+}
+
+/**
+ * 画像を保存場所に置いて、その URL を返す。すでに置いてある画像（https://…）はそのまま。
+ * 端末の中の画像（data URL）だけを、重ならない名前で新しく置く。1枚でも失敗したら null
+ */
+async function uploadImages(uid: string, linkId: string, list: string[]): Promise<string[] | null> {
+  const out: string[] = [];
+  for (const [i, src] of list.entries()) {
+    if (!src.startsWith("data:")) {
+      out.push(src);
+      continue;
+    }
+    const path = `${uid}/${linkId}/${Date.now()}-${i + 1}.jpg`;
+    const { error } = await supabase.storage.from("link-images").upload(path, await dataUrlToBlob(src), { contentType: "image/jpeg" });
+    if (error) return null;
+    out.push(supabase.storage.from("link-images").getPublicUrl(path).data.publicUrl);
+  }
+  return out;
+}
+
+/** 保存場所の画像の URL から、保存場所の中の場所（uid/リンク/ファイル名）を取り出す */
+function storagePath(url: string) {
+  const marker = "/storage/v1/object/public/link-images/";
+  const at = url.indexOf(marker);
+  return at < 0 ? null : decodeURIComponent(url.slice(at + marker.length));
+}
+
+/**
+ * 募集を直す（作った人だけ。データベースの権限でも、持ち主以外は書き換えられない）。
+ * questions を渡さないときは、質問は変えない（意見が届いたあとは、答えと質問がずれないよう変えられない）
+ */
+export async function updateLink(
+  id: string,
+  draft: Omit<LinkDraft, "questions"> & { questions: Question[] | null },
+  previousImages: string[],
+): Promise<Result<null>> {
+  if (!isSupabaseConfigured) return { ok: false, message: NOT_READY };
+  const uid = await currentUserId();
+  if (!uid) return { ok: false, message: "ログインし直してください" };
+  const images = await uploadImages(uid, id, draft.images);
+  if (!images) return { ok: false, message: `写真を保存できませんでした。${NETWORK}` };
+  const { data, error } = await supabase
+    .from("links")
+    .update({
+      kind: draft.kind,
+      title: draft.title,
+      tagline: draft.tagline,
+      url: draft.urls[0] ?? null,
+      urls: draft.urls,
+      images,
+      ...(draft.questions ? { questions: draft.questions } : {}),
+      maker_name: draft.makerName,
+      closes_at: draft.closesAt,
+      is_public: draft.isPublic,
+    })
+    .eq("id", id)
+    .select("id");
+  if (error || !data?.length) return { ok: false, message: `保存できませんでした。${NETWORK}` };
+  // 外した画像は、保存場所からも消す（失敗しても募集の中身には関係ない）
+  const removed = previousImages.filter((u) => !images.includes(u)).map(storagePath).filter((p): p is string => !!p);
+  if (removed.length) await supabase.storage.from("link-images").remove(removed);
+  return { ok: true, data: null };
 }
 
 /** 自分のリンクの一覧（新しい順）。まだ何も作っていない人は空 */

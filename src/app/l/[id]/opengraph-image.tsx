@@ -9,5 +9,5 @@ export const contentType = "image/png";
 export default async function Image({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const link = await getLink(id);
-  return link ? linkCard(link.title, link.makerName) : siteCard();
+  return link ? linkCard(link.title, link.makerName, link.images[0]) : siteCard();
 }

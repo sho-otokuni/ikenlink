@@ -5,6 +5,8 @@ import { useEffect, useState } from "react";
 
 import { AccountCard } from "@/components/AccountCard";
 import { AnsweredCard } from "@/components/AnsweredCard";
+import { ProfileCard } from "@/components/ProfileCard";
+import { DeleteAccount } from "@/components/DeleteAccount";
 import { finishSwitch, getAccount, readLoginError, type Account, type LoginError } from "@/lib/auth";
 import { fetchMyAnswerCount, fetchMyLinks, type MyLink } from "@/lib/links";
 import { isClosed } from "@/lib/questions";
@@ -46,8 +48,10 @@ export function MyLinks() {
         </Link>
       </div>
       {account && <AccountCard account={account} loginError={loginError} moved={moved} />}
+      {/* まだ何も使っていない人は、名前を残す先（利用者）がないので、初めて募集したときに保存する */}
+      {account && account.state !== "none" && <ProfileCard initialName={account.displayName} />}
       {answered !== null && (
-        <AnsweredCard count={answered} title="ほかの募集に答えた数" body="答えるほど、公開中の募集が一覧で前に出やすくなります。">
+        <AnsweredCard count={answered} title="ほかの意見に答えた数" body="答えるほど、公開中の募集が一覧で前に出やすくなります。">
           <Link href="/list" className="flex min-h-11 items-center text-[13px] font-bold text-coral">
             募集に答えに行く ›
           </Link>
@@ -80,6 +84,8 @@ export function MyLinks() {
           ? "ログインしたアカウントで作った募集が並びます。"
           : "登録なしのときは、このブラウザで作った募集だけが並びます。登録しないまま、ほかの端末から意見を見るときは、募集ごとの「自分専用の URL」を使ってください。"}
       </p>
+      {/* いちばん下に、目立たないように置く */}
+      {account && <DeleteAccount account={account} />}
     </div>
   );
 }

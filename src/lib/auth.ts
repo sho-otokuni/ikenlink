@@ -16,11 +16,17 @@ export const LOGIN_PROVIDERS: { id: LoginProvider; label: string }[] = [
   { id: "github", label: "GitHub" },
 ];
 
-/** none＝まだ何も使っていない／guest＝登録なしで使っている／member＝登録済み */
+/**
+ * none＝まだ何も使っていない／guest＝登録なしで使っている／member＝登録済み。
+ * displayName はプロフィールの「表示する名前」（募集を作るときに自動で入る）。
+ * who はログイン中のアカウントの見分け（メールアドレスか @ユーザー名）、providers はログインに使える方法
+ */
 export type Account =
   | { state: "none" }
-  | { state: "guest" }
-  | { state: "member"; provider: string; name: string | null };
+  | { state: "guest"; displayName: string }
+  | { state: "member"; displayName: string; who: string | null; providers: string[] };
+
+type UserMeta = { display_name?: string; email?: string; user_name?: string };
 
 /** ログインし直す前にもらった合言葉（ログインから戻ってきたら、これで募集を移す） */
 const TRANSFER_KEY = "iken-link:transfer";
@@ -32,15 +38,24 @@ export async function getAccount(): Promise<Account> {
   const { data } = await supabase.auth.getSession();
   const user = data.session?.user;
   if (!user) return { state: "none" };
-  if (user.is_anonymous) return { state: "guest" };
-  // 同じメールアドレスの Google と X などは、Supabase が1つのアカウントにまとめる。つながっている方法を全部出す
+  const meta = user.user_metadata as UserMeta;
+  const displayName = meta.display_name ?? "";
+  if (user.is_anonymous) return { state: "guest", displayName };
+  // 同じメールアドレスの Google と X などは、Supabase が1つのアカウントにまとめる。
+  // 本名を出さないよう、Google の氏名（full_name）は使わない
   const providers = (user.identities ?? []).map((i) => LOGIN_PROVIDERS.find((p) => p.id === i.provider)?.label ?? i.provider);
-  const meta = user.user_metadata as { email?: string; user_name?: string; full_name?: string; name?: string };
   return {
     state: "member",
-    provider: [...new Set(providers)].join("・"),
-    name: user.email ?? meta.email ?? meta.user_name ?? meta.full_name ?? meta.name ?? null,
+    displayName,
+    who: user.email ?? meta.email ?? (meta.user_name ? `@${meta.user_name}` : null),
+    providers: [...new Set(providers)],
   };
+}
+
+/** プロフィールの「表示する名前」を変える（登録なしの人も、このブラウザの利用者として残る） */
+export async function setDisplayName(name: string): Promise<string | null> {
+  const { error } = await supabase.auth.updateUser({ data: { display_name: name.trim().slice(0, 20) } });
+  return error ? "保存できませんでした。通信環境を確かめて、もう一度お試しください" : null;
 }
 
 /** ログインから戻ってくる場所（自分のリンクの画面） */
@@ -145,4 +160,25 @@ export function readLoginError(): LoginError {
 
 export async function signOut() {
   await supabase.auth.signOut();
+}
+
+/**
+ * アカウントを消す（元に戻せない）。作った募集・届いた意見・画像も消える。
+ * 画像の保存場所のファイルは、利用者を消すと自分では消せなくなるので、先に消しておく
+ */
+export async function deleteAccount(): Promise<string | null> {
+  const { data } = await supabase.auth.getSession();
+  const uid = data.session?.user.id;
+  if (!uid) return "ログインし直してください";
+  const bucket = supabase.storage.from("link-images");
+  const { data: folders } = await bucket.list(uid, { limit: 1000 });
+  for (const folder of folders ?? []) {
+    const { data: files } = await bucket.list(`${uid}/${folder.name}`, { limit: 1000 });
+    if (files?.length) await bucket.remove(files.map((f) => `${uid}/${folder.name}/${f.name}`));
+  }
+  const { error } = await supabase.rpc("delete_my_account");
+  if (error) return "消せませんでした。通信環境を確かめて、もう一度お試しください";
+  // 利用者はもういないので、この端末に残っているログインの情報も消す
+  await supabase.auth.signOut({ scope: "local" });
+  return null;
 }

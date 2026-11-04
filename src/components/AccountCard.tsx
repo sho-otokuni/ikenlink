@@ -44,10 +44,11 @@ export function AccountCard({
       <section className="flex flex-col gap-1.5 rounded-2xl border border-line bg-card p-3">
         {moved > 0 && <p className="rounded-xl bg-leaf-tint px-3 py-2 text-sm font-bold">この端末で作った募集を {moved} 件、アカウントに移しました。</p>}
         <div className="flex items-center gap-3">
-          <span className="flex flex-1 flex-col">
-            <b className="text-sm">{account.provider} でログインしています</b>
-            {account.name && <span className="text-xs text-muted">{account.name}</span>}
-            <span className="text-xs text-muted">どの端末からでも、ログインすれば自分のリンクを見られます。</span>
+          <span className="flex min-w-0 flex-1 flex-col">
+            <span className="text-xs text-muted">ログイン中</span>
+            <b className="truncate text-sm">{account.who ?? "アカウント"}</b>
+            {/* どの方法で入っても同じアカウントだと分かるように */}
+            <span className="text-xs text-muted">ログインに使える方法：{account.providers.join("・")}</span>
           </span>
           <button type="button" onClick={logout} className="min-h-11 shrink-0 rounded-full border border-line px-4 text-xs font-bold">
             ログアウト
@@ -75,7 +76,7 @@ export function AccountCard({
 
   return (
     <section className="flex flex-col gap-2 rounded-2xl border border-line bg-card p-3">
-      <b className="text-sm">{account.state === "guest" ? "アカウントを作って、どの端末からでも見られるように" : "ログイン"}</b>
+      <b className="text-sm">{account.state === "guest" ? "集まった意見を、スマホでもパソコンでも。" : "ログイン"}</b>
       <p className="text-xs leading-relaxed text-muted">
         {account.state === "guest"
           ? "いまは登録なしで使っています。作った募集はこのブラウザにだけ残ります。アカウントを作ると、ほかのスマホやパソコンからもログインして見られます。いまの募集も答えた数も、そのまま引き継ぎます。"

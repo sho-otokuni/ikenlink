@@ -14,7 +14,7 @@ import type { FeedbackLink, Question } from "@/lib/types";
 /**
  * 届いた意見を見る画面。作った端末なら自分のものとして、自分専用の URL（token あり）なら合言葉で読む
  */
-export function LinkResults({ id, created, token }: { id: string; created: boolean; token: string | null }) {
+export function LinkResults({ id, created, saved = false, token }: { id: string; created: boolean; saved?: boolean; token: string | null }) {
   const router = useRouter();
   // undefined＝読み込み中／null＝見つからない（自分のものでない）
   const [data, setData] = useState<Results | null | undefined>(undefined);
@@ -59,7 +59,7 @@ export function LinkResults({ id, created, token }: { id: string; created: boole
 
   return (
     <div className="flex flex-col gap-3.5 lg:gap-6">
-      {created && <p className="self-start rounded-full bg-leaf-tint px-3 py-1 text-sm font-bold">募集を始めました！</p>}
+      {(created || saved) && <p className="self-start rounded-full bg-leaf-tint px-3 py-1 text-sm font-bold">{created ? "募集を始めました！" : "変更を保存しました"}</p>}
       <div className="flex items-center gap-2.5 lg:gap-4">
         {link.images[0] && (
           <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-xl border border-line lg:h-[72px] lg:w-[72px]">
@@ -70,6 +70,12 @@ export function LinkResults({ id, created, token }: { id: string; created: boole
           <KindLabel link={link} />
           <h1 className="font-round text-lg font-bold leading-snug lg:text-[28px]">{link.title}</h1>
         </div>
+        {/* 直せるのは、作った端末（またはアカウント）で開いたときだけ */}
+        {!token && (
+          <Link href={`/me/${link.id}/edit`} className="flex min-h-11 shrink-0 items-center rounded-full border border-line bg-card px-3.5 text-xs font-bold hover:border-coral">
+            編集する
+          </Link>
+        )}
         <span className="flex flex-col items-end">
           <span className="font-round text-[26px] font-bold leading-none tabular-nums lg:text-[40px]">{count}</span>
           <span className="text-[11px] text-muted lg:text-[13px]">件の意見</span>

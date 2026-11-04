@@ -107,7 +107,7 @@ export function PublicList() {
         </div>
         <Link href="/new" className="hidden flex-col gap-2 rounded-2xl border border-peach bg-peach-tint p-3.5 lg:flex">
           <b className="text-sm">自分も意見を募集する</b>
-          <span className="text-xs leading-relaxed">ほかの募集に答えるほど、あなたの募集も前に出やすくなります。</span>
+          <span className="text-xs leading-relaxed">ほかの意見に答えるほど、あなたの募集も前に出やすくなります。</span>
           <span className="flex min-h-10 items-center justify-center rounded-full bg-coral text-sm font-bold text-night">＋ 募集する</span>
         </Link>
       </aside>
