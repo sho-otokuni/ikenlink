@@ -7,6 +7,7 @@ import { useEffect, useState, useSyncExternalStore } from "react";
 
 import { CalendarIcon } from "@/components/icons";
 import { KindLabel } from "@/components/KindLabel";
+import { getAccount } from "@/lib/auth";
 import { deleteLink, fetchResults, fetchResultsByToken, setLinkDeadline, setLinkPublic, type Response, type Results } from "@/lib/links";
 import { DEADLINES, deadlineAfter, deadlineOn, formatDay, isClosed, QUESTION_COPY, remaining } from "@/lib/questions";
 import type { FeedbackLink, Question } from "@/lib/types";
@@ -90,7 +91,7 @@ export function LinkResults({ id, created, saved = false, token }: { id: string;
         パソコンでは、左に届いた意見、右の列に「送る・設定・自分専用の URL」を置く。
         スマホでは右の列の入れ物（contents）を消して、order で「送る → 設定 → 意見 → 自分専用の URL」の順に並べる
       */}
-      <div className="flex flex-col gap-3.5 lg:grid lg:grid-cols-[1fr_360px] lg:items-start lg:gap-8">
+      <div className="flex flex-col gap-3.5 lg:grid lg:grid-cols-[1fr_360px] lg:items-start lg:gap-8 xl:grid-cols-[1fr_400px]">
         <div className="order-3 flex flex-col gap-3.5 lg:order-none lg:col-start-1 lg:row-start-1 lg:gap-5">
           {count > 0 ? (
             link.questions.map((q) => <QuestionResult key={q.id} question={q} responses={responses} />)
@@ -206,6 +207,8 @@ function ShareCard({ link, highlight }: { link: FeedbackLink; highlight: boolean
   const shareUrl = `${origin}/l/${link.id}`;
   const text = `「${link.title}」について、意見を募集しています。30秒・登録なしで答えられます！`;
   const xUrl = `https://x.com/intent/post?text=${encodeURIComponent(text)}&url=${encodeURIComponent(shareUrl)}`;
+  // LINE の送る画面（スマホでは LINE のアプリが開き、送る相手を選べる）
+  const lineUrl = `https://line.me/R/share?text=${encodeURIComponent(`${text}\n${shareUrl}`)}`;
 
   async function copy() {
     try {
@@ -221,12 +224,15 @@ function ShareCard({ link, highlight }: { link: FeedbackLink; highlight: boolean
     <section className={`flex flex-col gap-2 rounded-2xl border p-3 ${highlight ? "border-coral bg-coral-tint" : "border-line bg-card"}`}>
       <h2 className="text-sm font-bold">このリンクを送って、意見を集める</h2>
       <p className="break-all rounded-lg bg-card px-2.5 py-1.5 font-mono text-xs">{shareUrl}</p>
+      <button type="button" onClick={copy} className="min-h-11 rounded-full bg-coral px-3 text-[13px] font-bold text-night">
+        {copied ? "コピーしました" : "リンクをコピー"}
+      </button>
       <div className="flex gap-2">
-        <button type="button" onClick={copy} className="min-h-11 flex-1 rounded-full bg-coral px-3 text-[13px] font-bold text-night">
-          {copied ? "コピーしました" : "リンクをコピー"}
-        </button>
         <a href={xUrl} target="_blank" rel="noopener noreferrer" className="flex min-h-11 flex-1 items-center justify-center rounded-full bg-night px-3 text-[13px] font-bold text-white">
           X に投稿する
+        </a>
+        <a href={lineUrl} target="_blank" rel="noopener noreferrer" className="flex min-h-11 flex-1 items-center justify-center rounded-full bg-line-brand px-3 text-[13px] font-bold text-white">
+          LINE で送る
         </a>
       </div>
     </section>
@@ -352,6 +358,16 @@ function AdminUrlCard({ id, token, highlight }: { id: string; token: string; hig
   const origin = useOrigin();
   const [copied, setCopied] = useState(false);
   const adminUrl = `${origin}/me/${id}?k=${token}`;
+  // アカウントを作っている人は、自分のリンクにいつでも出るので、この URL を残しておかなくてよい
+  const [member, setMember] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    let alive = true;
+    getAccount().then((a) => alive && setMember(a.state === "member"));
+    return () => {
+      alive = false;
+    };
+  }, []);
 
   async function copy() {
     try {
@@ -363,6 +379,34 @@ function AdminUrlCard({ id, token, highlight }: { id: string; token: string; hig
     }
   }
 
+  if (member === null) return null;
+
+  if (member) {
+    return (
+      <section className="flex flex-col gap-1.5 rounded-2xl border border-leaf bg-leaf-tint p-3">
+        <h2 className="text-sm font-bold">この募集は、アカウントに保存されています</h2>
+        <p className="text-xs leading-relaxed">
+          ログインしているので、この募集は
+          <Link href="/me" className="font-bold underline underline-offset-2">
+            自分のリンク
+          </Link>
+          にいつでも出ます。ほかのスマホやパソコンでも、ログインすれば見られます。下の URL を残しておく必要はありません。
+        </p>
+        <details className="text-xs">
+          <summary className="flex min-h-11 cursor-pointer items-center font-bold text-muted">ログインせずに見る、自分専用の URL</summary>
+          <div className="flex flex-col gap-1.5">
+            <p className="leading-relaxed">
+              ログインしないで意見を見たいときに使えます。<strong>人には送らないでください。</strong>
+            </p>
+            <button type="button" onClick={copy} className="min-h-11 rounded-full border border-line bg-card px-4 text-[13px] font-bold">
+              {copied ? "コピーしました" : "自分専用の URL をコピー"}
+            </button>
+          </div>
+        </details>
+      </section>
+    );
+  }
+
   return (
     <section className={`flex flex-col gap-1.5 rounded-2xl border p-3 ${highlight ? "border-peach bg-peach-tint" : "border-line bg-card"}`}>
       <h2 className="text-sm font-bold">意見を見るための、自分専用の URL</h2>
@@ -372,6 +416,12 @@ function AdminUrlCard({ id, token, highlight }: { id: string; token: string; hig
       <button type="button" onClick={copy} className="min-h-11 rounded-full border border-line bg-card px-4 text-[13px] font-bold">
         {copied ? "コピーしました" : "自分専用の URL をコピー"}
       </button>
+      <p className="text-xs leading-relaxed text-muted">
+        <Link href="/me" className="font-bold text-coral underline-offset-2 hover:underline">
+          アカウントを作る
+        </Link>
+        と、この URL を残さなくても、自分のリンクからいつでも見られます。
+      </p>
     </section>
   );
 }
@@ -408,7 +458,7 @@ function QuestionResult({ question, responses }: { question: Question; responses
           })}
         </div>
       ) : values.length > 0 ? (
-        <ul className="flex flex-col gap-1.5 lg:grid lg:grid-cols-2 lg:gap-2">
+        <ul className="flex flex-col gap-1.5 lg:grid lg:grid-cols-2 lg:gap-2 2xl:grid-cols-3">
           {values.map((v, i) => (
             <li key={i} className="whitespace-pre-wrap rounded-lg border border-line bg-card px-2.5 py-1.5 text-[13px] leading-relaxed">
               {v}

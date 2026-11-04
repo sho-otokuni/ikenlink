@@ -16,9 +16,9 @@ export default function Home() {
   return (
     <>
       <Header />
-      <main className={`${PAGE_WIDTH} flex flex-1 flex-col gap-[18px] px-3 pb-16 pt-4 lg:gap-10 lg:px-0 lg:pt-14`}>
+      <main className={`${PAGE_WIDTH} flex flex-1 flex-col gap-[18px] px-3 pb-16 pt-4 lg:gap-10 lg:px-8 xl:px-12 lg:pt-14`}>
         {/* パソコンでは、左に見出し・説明・ボタン、右に「使い方の例」を並べる */}
-        <div className="flex flex-col gap-[18px] lg:grid lg:grid-cols-[1fr_460px] lg:items-center lg:gap-14">
+        <div className="flex flex-col gap-[18px] lg:grid lg:grid-cols-[1fr_460px] lg:items-center lg:gap-14 xl:grid-cols-[1fr_540px]">
           <section className="flex flex-col gap-3 lg:gap-5">
             <h1 className="font-round text-[28px] font-bold leading-snug lg:text-[56px] lg:leading-tight">
               「これ、どう思う？」
@@ -28,7 +28,7 @@ export default function Home() {
             <p className="text-sm leading-relaxed text-muted lg:text-[17px] lg:leading-loose">
               思いついたアイデアも、つくりかけのものも。
               <br />
-              画像やURLを貼って共有して、感想をもらってみませんか。
+              画像やURLを貼って共有して、意見をもらってみませんか。
               <br />
               答える人は、リンクを開いてそのまま回答できます。
             </p>

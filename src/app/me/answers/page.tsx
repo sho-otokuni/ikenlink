@@ -11,7 +11,7 @@ export default function MyAnswersPage() {
   return (
     <>
       <Header current="/me" />
-      <main className={`${PAGE_WIDTH} flex-1 px-3 pb-16 pt-3 lg:px-0 lg:pt-8`}>
+      <main className={`${PAGE_WIDTH} flex-1 px-3 pb-16 pt-3 lg:px-8 xl:px-12 lg:pt-8`}>
         <Link href="/me" className="flex min-h-11 items-center self-start text-xs font-bold text-muted hover:text-ink">
           ‹ 自分のリンク
         </Link>

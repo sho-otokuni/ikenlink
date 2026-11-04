@@ -2,6 +2,8 @@ import type { Metadata, Viewport } from "next";
 import { Noto_Sans_JP, Zen_Maru_Gothic } from "next/font/google";
 import "./globals.css";
 
+import { Footer } from "@/components/Footer";
+
 // 本文は Noto Sans JP、見出しは Zen Maru Gothic
 const noto = Noto_Sans_JP({
   variable: "--font-noto",
@@ -37,7 +39,10 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="ja" className={`${noto.variable} ${zen.variable} h-full antialiased`}>
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        {children}
+        <Footer />
+      </body>
     </html>
   );
 }

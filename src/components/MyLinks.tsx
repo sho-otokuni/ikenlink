@@ -51,7 +51,7 @@ export function MyLinks() {
       {/* まだ何も使っていない人は、名前を残す先（利用者）がないので、初めて募集したときに保存する */}
       {account && account.state !== "none" && <ProfileCard initialName={account.displayName} />}
       {answered !== null && (
-        <AnsweredCard count={answered} title="ほかの意見に答えた数" body="答えるほど、公開中の募集が一覧で前に出やすくなります。">
+        <AnsweredCard count={answered} title="ほかの意見に答えた数" body="3件以上答えると、公開中の募集のカードに「よく答えている人」の印が付きます。">
           <span className="flex flex-wrap gap-x-4">
             <Link href="/list" className="flex min-h-11 items-center text-[13px] font-bold text-coral">
               募集に答えに行く ›

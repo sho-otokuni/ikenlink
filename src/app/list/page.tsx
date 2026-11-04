@@ -13,7 +13,7 @@ export default function PublicListPage() {
   return (
     <>
       <Header current="/list" />
-      <main className={`${PAGE_WIDTH} flex-1 px-3 pb-16 pt-3 lg:px-0 lg:pt-8`}>
+      <main className={`${PAGE_WIDTH} flex-1 px-3 pb-16 pt-3 lg:px-8 xl:px-12 lg:pt-8`}>
         <PublicList />
       </main>
     </>

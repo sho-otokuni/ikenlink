@@ -7,8 +7,8 @@ const NAV = [
   { href: "/me", label: "自分のリンク" },
 ] as const;
 
-/** 画面の中身の幅。スマホでは画面いっぱい、パソコンでは 1120px までにそろえる */
-export const PAGE_WIDTH = "mx-auto w-full max-w-2xl lg:max-w-[1120px]";
+/** 画面の中身の幅。スマホでは画面いっぱい、パソコンでは画面の幅を広く使い、1600px までにそろえる（左右の余白は各画面で lg:px-8 xl:px-12） */
+export const PAGE_WIDTH = "mx-auto w-full max-w-2xl lg:max-w-[1600px]";
 
 /**
  * 上の帯。左上のロゴを押すとホームへ。
@@ -18,7 +18,7 @@ export const PAGE_WIDTH = "mx-auto w-full max-w-2xl lg:max-w-[1120px]";
 export function Header({ current, answerer = false }: { current?: "/list" | "/me"; answerer?: boolean }) {
   return (
     <div className="lg:border-b lg:border-line">
-      <header className={`${PAGE_WIDTH} flex items-center justify-between pl-3 pr-2 pt-1 lg:h-16 lg:px-0 lg:pt-0`}>
+      <header className={`${PAGE_WIDTH} flex items-center justify-between pl-3 pr-2 pt-1 lg:h-16 lg:px-8 lg:pt-0 xl:px-12`}>
         <Link href="/" aria-label="意見リンク（ホームへ）" className="flex min-h-11 items-center gap-1.5 pr-1 lg:gap-2">
           <LogoMark />
           <span className="font-round text-base font-bold lg:text-[19px]">意見リンク</span>

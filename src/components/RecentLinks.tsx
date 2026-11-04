@@ -6,13 +6,13 @@ import { useEffect, useState } from "react";
 import { LinkCard } from "@/components/PublicList";
 import { fetchPublicLinks, type PublicLink } from "@/lib/links";
 
-/** はじめの画面（パソコンの幅だけ）の「いま意見を募集中」。新しい順に4つ */
+/** はじめの画面（パソコンの幅だけ）の「いま意見を募集中」。新しい順に4つ（広い画面では5つ） */
 export function RecentLinks() {
   const [links, setLinks] = useState<PublicLink[] | null>(null);
 
   useEffect(() => {
     let alive = true;
-    fetchPublicLinks().then((r) => alive && r.ok && setLinks(r.data.slice(0, 4)));
+    fetchPublicLinks().then((r) => alive && r.ok && setLinks(r.data.slice(0, 5)));
     return () => {
       alive = false;
     };
@@ -27,9 +27,10 @@ export function RecentLinks() {
           すべて見る ›
         </Link>
       </div>
-      <ul className="grid grid-cols-4 gap-4">
-        {links.map((l) => (
-          <li key={l.id} className="flex">
+      <ul className="grid grid-cols-4 gap-4 xl:grid-cols-5">
+        {links.map((l, i) => (
+          // 4列のときは5件目を出さない（1件だけ次の行に落ちないように）
+          <li key={l.id} className={i === 4 ? "hidden xl:flex" : "flex"}>
             <LinkCard link={l} done={false} />
           </li>
         ))}

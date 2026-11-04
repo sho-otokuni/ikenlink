@@ -50,10 +50,10 @@ export function AnswerFlow({ link }: { link: FeedbackLink }) {
   return (
     <>
       <Header answerer />
-      <main className={`mx-auto flex w-full max-w-md flex-1 flex-col px-3 pb-16 pt-2 ${step === "answer" ? "lg:max-w-[1120px] lg:px-0 lg:pt-10" : "lg:pt-10"}`}>
+      <main className={`mx-auto flex w-full max-w-md flex-1 flex-col px-3 pb-16 pt-2 ${step === "answer" ? "lg:max-w-[1600px] lg:px-8 lg:pt-10 xl:px-12" : "lg:pt-10"}`}>
         {step === "answer" && (
           // パソコンでは、左に見てほしいもの、右のカードに質問を置く
-          <div className="flex flex-col gap-4 lg:grid lg:grid-cols-[1fr_480px] lg:items-start lg:gap-12">
+          <div className="flex flex-col gap-4 lg:grid lg:grid-cols-[1fr_480px] lg:items-start lg:gap-12 xl:grid-cols-[1fr_540px]">
             <About link={link} />
             <div className="flex flex-col gap-4 lg:gap-[18px] lg:rounded-2xl lg:border lg:border-line lg:bg-card lg:p-6 lg:shadow-[0_12px_32px_rgba(28,24,56,0.06)]">
             {link.questions.map((q) => (
@@ -181,7 +181,7 @@ function Done({ makerName, answeredCount }: { makerName: string; answeredCount: 
         <AnsweredCard
           count={answeredCount}
           title={`これまでに答えた数が ${answeredCount} 件になりました`}
-          body="答えるほど、あなたの募集も「意見募集中」で前に出やすくなります。おたがいさまで、意見が集まる場所に。"
+          body="3件以上答えると、あなたの募集のカードに「よく答えている人」の印が付きます。おたがいさまで、意見が集まる場所に。"
         />
       )}
       <Onward />

@@ -181,7 +181,7 @@ export function NewLinkForm({ editing }: { editing?: EditTarget }) {
   const preview = { kind, title, images, tagline, urls, makerName, closesAt, kinds, freeQuestions };
 
   return (
-    <div className="mt-4 lg:mt-6 lg:grid lg:grid-cols-[1fr_400px] lg:items-start lg:gap-12">
+    <div className="mt-4 lg:mt-6 lg:grid lg:grid-cols-[1fr_400px] lg:items-start lg:gap-12 xl:grid-cols-[1fr_460px]">
     <div className="flex flex-col gap-5 lg:gap-6">
       <Section title="見てほしいもの">
         <div role="radiogroup" aria-label="種類" className="flex flex-wrap gap-1.5">

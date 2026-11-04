@@ -11,35 +11,24 @@ import { fetchPublicLinks, type PublicLink } from "@/lib/links";
 import { LINK_KINDS, remaining } from "@/lib/questions";
 import type { LinkKind } from "@/lib/types";
 
-type Sort = "recommended" | "new" | "few";
+type Sort = "new" | "many" | "few";
 const SORTS: { id: Sort; label: string }[] = [
-  { id: "recommended", label: "おすすめ順（よく答えている人が先）" },
   { id: "new", label: "新しい順" },
+  { id: "many", label: "意見が多い順" },
   { id: "few", label: "意見が少ない順" },
 ];
 
 /** 「よく答えている人」の印を付ける、ほかの募集に答えた数 */
 const ACTIVE_ANSWERER = 3;
 
-/**
- * おすすめ順の点数。ほかの募集に答えた数が多い人ほど前に（20件で頭打ち）。
- * 答えた数だけだと新しく来た人がずっと後ろになるので、始めて2日以内の募集は少し前に出す
- */
-function score(l: PublicLink, now: number) {
-  const fresh = now - new Date(l.createdAt).getTime() < 2 * 86_400_000 ? 5 : 0;
-  return Math.min(l.ownerAnswered, 20) + fresh;
-}
-
 /** 意見募集中の一覧。キーワードと種類で絞り込み、まだ答えていないものを先に並べる */
 export function PublicList() {
   const [links, setLinks] = useState<PublicLink[] | null>(null);
-  // 読み込んだ時刻（おすすめ順の「始めて2日以内」を数える基準）
-  const [loadedAt, setLoadedAt] = useState(0);
   const [answered, setAnswered] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [query, setQuery] = useState("");
   const [kind, setKind] = useState<LinkKind | "all">("all");
-  const [sort, setSort] = useState<Sort>("recommended");
+  const [sort, setSort] = useState<Sort>("new");
 
   useEffect(() => {
     let alive = true;
@@ -47,7 +36,6 @@ export function PublicList() {
       if (!alive) return;
       if (!r.ok) return setError(r.message);
       setAnswered(answeredIds());
-      setLoadedAt(Date.now());
       setLinks(r.data);
     });
     return () => {
@@ -63,14 +51,14 @@ export function PublicList() {
       .filter((l) => kind === "all" || l.kind === kind)
       .filter((l) => words.every((w) => `${l.title} ${l.makerName}`.toLowerCase().includes(w)));
     const order = (a: PublicLink, b: PublicLink) =>
-      sort === "new"
-        ? b.createdAt.localeCompare(a.createdAt)
-        : sort === "few"
-          ? a.responseCount - b.responseCount || b.createdAt.localeCompare(a.createdAt)
-          : score(b, loadedAt) - score(a, loadedAt) || b.createdAt.localeCompare(a.createdAt);
+      sort === "few"
+        ? a.responseCount - b.responseCount || b.createdAt.localeCompare(a.createdAt)
+        : sort === "many"
+          ? b.responseCount - a.responseCount || b.createdAt.localeCompare(a.createdAt)
+          : b.createdAt.localeCompare(a.createdAt);
     // 答えたものは、どの並びでも下へ
     return [...hits.filter((l) => !done.has(l.id)).sort(order), ...hits.filter((l) => done.has(l.id)).sort(order)];
-  }, [links, loadedAt, answered, query, kind, sort]);
+  }, [links, answered, query, kind, sort]);
 
   if (error) return <p role="alert" className="text-sm font-bold text-coral">{error}</p>;
 
@@ -84,8 +72,6 @@ export function PublicList() {
           <h1 className="font-round text-[22px] font-bold lg:text-[28px]">意見募集中</h1>
           <p className="text-xs leading-relaxed text-muted lg:text-[13px]">
             公開されている募集です。どれも登録なし、30秒ほどで答えられます。
-            <br className="lg:hidden" />
-            よく答えている人の募集ほど、前に並びます。
           </p>
         </div>
         <div role="tablist" aria-label="種類" className="order-2 -mx-3 flex gap-1.5 overflow-x-auto px-3 lg:order-none lg:mx-0 lg:flex-col lg:gap-1 lg:overflow-visible lg:px-0">
@@ -107,7 +93,7 @@ export function PublicList() {
         </div>
         <Link href="/new" className="hidden flex-col gap-2 rounded-2xl border border-peach bg-peach-tint p-3.5 lg:flex">
           <b className="text-sm">自分も意見を募集する</b>
-          <span className="text-xs leading-relaxed">ほかの意見に答えるほど、あなたの募集も前に出やすくなります。</span>
+          <span className="text-xs leading-relaxed">画像1枚からでも、意見を集められます。</span>
           <span className="flex min-h-10 items-center justify-center rounded-full bg-coral text-sm font-bold text-night">＋ 募集する</span>
         </Link>
       </aside>
@@ -145,7 +131,8 @@ export function PublicList() {
           {!links && <div className="h-40 rounded-2xl bg-line" aria-busy />}
           {links?.length === 0 && <p className="text-sm text-muted">いまは意見を募集しているものがありません。</p>}
           {links && links.length > 0 && shown.length === 0 && <p className="text-sm text-muted">見つかりませんでした。ことばや種類を変えてみてください。</p>}
-          <ul className="flex flex-col gap-2 lg:grid lg:grid-cols-3 lg:gap-4">
+          {/* パソコンでは画面の幅に合わせて 3〜5 列 */}
+          <ul className="flex flex-col gap-2 lg:grid lg:grid-cols-3 lg:gap-4 xl:grid-cols-4 2xl:grid-cols-5">
             {shown.map((l) => (
               <li key={l.id} className="flex">
                 <LinkCard link={l} done={done.has(l.id)} />
@@ -176,7 +163,8 @@ export function LinkCard({ link: l, done }: { link: PublicLink; done: boolean })
           <span className="font-round text-xl font-bold text-muted lg:text-4xl">{l.title.slice(0, 1)}</span>
         )}
       </span>
-      <span className="flex flex-1 items-center gap-2.5 lg:items-end lg:px-3.5 lg:pb-3.5 lg:pt-3">
+      {/* パソコンでは列が細くなるので、「答える」は説明の下の右端に置く */}
+      <span className="flex flex-1 items-center gap-2.5 lg:flex-col lg:items-stretch lg:gap-2 lg:px-3.5 lg:pb-3.5 lg:pt-3">
         <span className="flex flex-1 flex-col items-start gap-1 lg:gap-1.5">
           <span className="flex flex-wrap gap-1">
             <KindLabel link={l} small />
@@ -184,11 +172,12 @@ export function LinkCard({ link: l, done }: { link: PublicLink; done: boolean })
           </span>
           <span className="text-sm font-bold leading-snug lg:text-[15px]">{l.title}</span>
           <span className="text-[11px] text-muted lg:text-xs">
-            {l.makerName}さん · 意見 {l.responseCount}件
+            {l.makerName}さん · {/* 0件の寂しさを、答える理由に変える */}
+            {l.responseCount > 0 ? `意見 ${l.responseCount}件` : <b className="text-coral">最初の意見を送ろう</b>}
             {left && (left === "今日まで" ? <b className="text-coral"> · 今日まで</b> : ` · ${left}`)}
           </span>
         </span>
-        <span className={`shrink-0 rounded-full px-2.5 py-1.5 text-xs font-bold ${done ? "bg-leaf-tint" : "bg-coral text-night"}`}>{done ? "答えた" : "答える"}</span>
+        <span className={`shrink-0 rounded-full px-2.5 py-1.5 text-xs font-bold lg:self-end ${done ? "bg-leaf-tint" : "bg-coral text-night"}`}>{done ? "答えた" : "答える"}</span>
       </span>
     </Link>
   );

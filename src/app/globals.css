@@ -19,6 +19,8 @@
   --leaf-dark: #3f8f57;
   --grape-tint: #ece8fb;
   --night: #1c1838;
+  /* LINE の色（LINE で送るボタンだけに使う） */
+  --line-brand: #06c755;
 }
 
 @theme inline {
@@ -36,6 +38,7 @@
   --color-leaf-dark: var(--leaf-dark);
   --color-grape-tint: var(--grape-tint);
   --color-night: var(--night);
+  --color-line-brand: var(--line-brand);
   --font-sans: var(--font-noto), system-ui, sans-serif;
   --font-round: var(--font-zen), var(--font-noto), system-ui, sans-serif;
 }
