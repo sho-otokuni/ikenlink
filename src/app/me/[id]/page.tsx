@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 
-import { Header } from "@/components/Header";
+import { Header, PAGE_WIDTH } from "@/components/Header";
 import { LinkResults } from "@/components/LinkResults";
 
 export const metadata: Metadata = { title: "届いた意見｜意見リンク", robots: { index: false, follow: false } };
@@ -11,7 +11,7 @@ export default function ResultsPage(props: PageProps<"/me/[id]">) {
   return (
     <>
       <Header />
-      <main className="mx-auto w-full max-w-2xl flex-1 px-3 pb-16 pt-3">
+      <main className={`${PAGE_WIDTH} flex-1 px-3 pb-16 pt-3 lg:px-0 lg:pt-8`}>
         <Suspense fallback={<div className="h-40 rounded-2xl bg-line" aria-busy />}>
           <Results params={props.params} searchParams={props.searchParams} />
         </Suspense>

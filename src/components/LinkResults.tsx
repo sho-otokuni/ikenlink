@@ -58,21 +58,21 @@ export function LinkResults({ id, created, token }: { id: string; created: boole
   }
 
   return (
-    <div className="flex flex-col gap-3.5">
+    <div className="flex flex-col gap-3.5 lg:gap-6">
       {created && <p className="self-start rounded-full bg-leaf-tint px-3 py-1 text-sm font-bold">募集を始めました！</p>}
-      <div className="flex items-center gap-2.5">
+      <div className="flex items-center gap-2.5 lg:gap-4">
         {link.images[0] && (
-          <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-xl border border-line">
-            <Image src={link.images[0]} alt="" fill sizes="56px" className="object-cover" />
+          <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-xl border border-line lg:h-[72px] lg:w-[72px]">
+            <Image src={link.images[0]} alt="" fill sizes="72px" className="object-cover" />
           </div>
         )}
-        <div className="flex flex-1 flex-col items-start gap-0.5">
+        <div className="flex flex-1 flex-col items-start gap-0.5 lg:gap-1">
           <KindLabel link={link} />
-          <h1 className="font-round text-lg font-bold leading-snug">{link.title}</h1>
+          <h1 className="font-round text-lg font-bold leading-snug lg:text-[28px]">{link.title}</h1>
         </div>
         <span className="flex flex-col items-end">
-          <span className="font-round text-[26px] font-bold leading-none tabular-nums">{count}</span>
-          <span className="text-[11px] text-muted">件の意見</span>
+          <span className="font-round text-[26px] font-bold leading-none tabular-nums lg:text-[40px]">{count}</span>
+          <span className="text-[11px] text-muted lg:text-[13px]">件の意見</span>
         </span>
       </div>
 
@@ -80,24 +80,37 @@ export function LinkResults({ id, created, token }: { id: string; created: boole
         <p className="rounded-xl bg-leaf-tint px-3 py-2 text-sm leading-relaxed">自分専用の URL で開いています。この URL は、ほかの人に見せないでください。</p>
       )}
 
-      <ShareCard link={link} highlight={created || count === 0} />
+      {/*
+        パソコンでは、左に届いた意見、右の列に「送る・設定・自分専用の URL」を置く。
+        スマホでは右の列の入れ物（contents）を消して、order で「送る → 設定 → 意見 → 自分専用の URL」の順に並べる
+      */}
+      <div className="flex flex-col gap-3.5 lg:grid lg:grid-cols-[1fr_360px] lg:items-start lg:gap-8">
+        <div className="order-3 flex flex-col gap-3.5 lg:order-none lg:col-start-1 lg:row-start-1 lg:gap-5">
+          {count > 0 ? (
+            link.questions.map((q) => <QuestionResult key={q.id} question={q} responses={responses} />)
+          ) : (
+            <p className="text-sm leading-relaxed text-muted">まだ意見は届いていません。リンクを X や友だちに送ってみましょう。</p>
+          )}
+        </div>
 
-      {isPublic !== null ? (
-        <SettingsCard id={link.id} initialPublic={isPublic} initialClosesAt={link.closesAt} />
-      ) : (
-        <p className="text-sm text-muted">{deadlineText(link.closesAt)}</p>
-      )}
+        <aside className="contents lg:col-start-2 lg:row-start-1 lg:flex lg:flex-col lg:gap-4">
+          <div className="order-1 lg:order-none">
+            <ShareCard link={link} highlight={created || count === 0} />
+          </div>
+          <div className="order-2 lg:order-none">
+            {isPublic !== null ? (
+              <SettingsCard id={link.id} initialPublic={isPublic} initialClosesAt={link.closesAt} />
+            ) : (
+              <p className="text-sm text-muted">{deadlineText(link.closesAt)}</p>
+            )}
+          </div>
+          {adminToken && (
+            <div className="order-4 lg:order-none">
+              <AdminUrlCard id={link.id} token={adminToken} highlight={created} />
+            </div>
+          )}
 
-
-      {count > 0 ? (
-        link.questions.map((q) => <QuestionResult key={q.id} question={q} responses={responses} />)
-      ) : (
-        <p className="text-sm leading-relaxed text-muted">まだ意見は届いていません。上のリンクを X や友だちに送ってみましょう。</p>
-      )}
-
-      {adminToken && <AdminUrlCard id={link.id} token={adminToken} highlight={created} />}
-
-      <div className="flex items-center justify-between">
+      <div className="order-5 flex items-center justify-between lg:order-none">
         <Link href={`/l/${link.id}`} className="flex min-h-11 items-center text-xs font-bold text-muted hover:text-ink">
           答える画面を見てみる ›
         </Link>
@@ -107,6 +120,8 @@ export function LinkResults({ id, created, token }: { id: string; created: boole
             この募集を消す
           </button>
         )}
+      </div>
+        </aside>
       </div>
     </div>
   );
@@ -313,8 +328,8 @@ function QuestionResult({ question, responses }: { question: Question; responses
     .map((v) => copy.aliases?.[v] ?? v);
 
   return (
-    <section className="flex flex-col gap-1.5">
-      <h2 className="text-sm font-bold leading-snug">
+    <section className="flex flex-col gap-1.5 lg:gap-2.5 lg:rounded-2xl lg:border lg:border-line lg:bg-card lg:p-5">
+      <h2 className="text-sm font-bold leading-snug lg:text-base">
         {label}
         <span className="ml-1.5 text-[11px] font-normal text-muted">{values.length}件</span>
       </h2>
@@ -335,7 +350,7 @@ function QuestionResult({ question, responses }: { question: Question; responses
           })}
         </div>
       ) : values.length > 0 ? (
-        <ul className="flex flex-col gap-1.5">
+        <ul className="flex flex-col gap-1.5 lg:grid lg:grid-cols-2 lg:gap-2">
           {values.map((v, i) => (
             <li key={i} className="whitespace-pre-wrap rounded-lg border border-line bg-card px-2.5 py-1.5 text-[13px] leading-relaxed">
               {v}

@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState, useSyncExternalStore } from "react";
 
 import { CalendarIcon } from "@/components/icons";
+import { KindLabel } from "@/components/KindLabel";
 import { shrinkImage } from "@/lib/image";
 import { createLink } from "@/lib/links";
 import { DEADLINES, deadlineAfter, deadlineOn, formatDay, LINK_KINDS, QUESTION_COPY, TEMPLATE_KINDS } from "@/lib/questions";
@@ -11,6 +12,7 @@ import type { LinkKind, Question, QuestionKind } from "@/lib/types";
 
 const MAX_IMAGES = 4;
 const MAX_FREE = 2;
+const MAX_URLS = 5;
 
 /**
  * 今日の日付（yyyy-mm-dd）。締め切りを数える基準で、日付を選ぶときのいちばん早い日。
@@ -34,7 +36,7 @@ export function NewLinkForm() {
   const [title, setTitle] = useState("");
   const [images, setImages] = useState<string[]>([]);
   const [tagline, setTagline] = useState("");
-  const [url, setUrl] = useState("");
+  const [urls, setUrls] = useState<string[]>([""]);
   const [kinds, setKinds] = useState<QuestionKind[]>(TEMPLATE_KINDS.filter((t) => t.on).map((t) => t.kind));
   const [freeQuestions, setFreeQuestions] = useState<string[]>([]);
   // 締め切り：DEADLINES の id か、"date"（日付を選ぶ）
@@ -71,8 +73,8 @@ export function NewLinkForm() {
   async function submit() {
     setError(null);
     if (!canSubmit) return;
-    const trimmedUrl = url.trim();
-    if (trimmedUrl && !/^https?:\/\/\S+$/.test(trimmedUrl)) return setError("URL は https:// から始まる形で入れてください");
+    const cleanUrls = urls.map((u) => u.trim()).filter(Boolean);
+    if (cleanUrls.some((u) => !/^https?:\/\/\S+$/.test(u))) return setError("URL は https:// から始まる形で入れてください");
     if (deadline === "date" && !deadlineDate) return setError("締め切りの日付を選んでください");
     setBusy(true);
     // 並びは型の順、自由な質問は最後
@@ -87,7 +89,7 @@ export function NewLinkForm() {
       kind,
       title: title.trim(),
       tagline: tagline.trim() || null,
-      url: trimmedUrl || null,
+      urls: cleanUrls,
       images,
       questions,
       makerName: makerName.trim(),
@@ -101,8 +103,11 @@ export function NewLinkForm() {
     router.push(`/me/${r.data}?created=1`);
   }
 
+  const preview = { kind, title, images, tagline, makerName, closesAt, kinds, freeQuestions };
+
   return (
-    <div className="mt-4 flex flex-col gap-5">
+    <div className="mt-4 lg:mt-6 lg:grid lg:grid-cols-[1fr_400px] lg:items-start lg:gap-12">
+    <div className="flex flex-col gap-5 lg:gap-6">
       <Section title="見てほしいもの">
         <div role="radiogroup" aria-label="種類" className="flex flex-wrap gap-1.5">
           {LINK_KINDS.map((k) => (
@@ -138,14 +143,24 @@ export function NewLinkForm() {
               </div>
             ))}
             {images.length < MAX_IMAGES && (
-              <label className="flex h-24 w-24 cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed border-line text-xs text-muted hover:border-coral">
+              <label
+                // パソコンでは、画像をここへドラッグしても入れられる
+                onDragOver={(e) => e.preventDefault()}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  addImages(e.dataTransfer.files);
+                }}
+                className="flex h-24 w-24 cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed border-line text-xs text-muted hover:border-coral lg:min-w-48 lg:flex-1"
+              >
                 <span className="text-xl leading-none">＋</span>
-                画像
+                <span className="lg:hidden">画像</span>
+                <span className="hidden lg:inline">ここに画像をドラッグ、または選ぶ</span>
                 <input type="file" accept="image/*" multiple className="sr-only" onChange={(e) => addImages(e.target.files)} />
               </label>
             )}
           </div>
         </Field>
+        <div className="flex flex-col gap-2.5 lg:grid lg:grid-cols-2 lg:gap-3.5">
         <Field label="説明" note="（どんなものか、何に迷っているか）">
           <textarea
             value={tagline}
@@ -158,12 +173,45 @@ export function NewLinkForm() {
           />
         </Field>
         <Field label="URL" note="（あれば。なくても大丈夫）">
-          <input value={url} onChange={(e) => setUrl(e.target.value)} inputMode="url" placeholder="https://" aria-label="URL" className={inputClass} />
+          <div className="flex flex-col gap-2">
+            {urls.map((u, i) => (
+              <div key={i} className="flex items-center gap-2">
+                <input
+                  value={u}
+                  onChange={(e) => setUrls((list) => list.map((x, k) => (k === i ? e.target.value : x)))}
+                  inputMode="url"
+                  placeholder="https://"
+                  aria-label={`URL ${i + 1}`}
+                  className={`${inputClass} flex-1`}
+                />
+                {urls.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => setUrls((list) => list.filter((_, k) => k !== i))}
+                    aria-label={`URL ${i + 1} を消す`}
+                    className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-line text-muted"
+                  >
+                    ×
+                  </button>
+                )}
+              </div>
+            ))}
+            {urls.length < MAX_URLS && (
+              <button
+                type="button"
+                onClick={() => setUrls((list) => [...list, ""])}
+                className="min-h-11 self-start rounded-full border border-dashed border-line px-4 text-sm font-bold text-muted hover:border-coral"
+              >
+                ＋ URL を足す
+              </button>
+            )}
+          </div>
         </Field>
+        </div>
       </Section>
 
       <Section title="聞きたいこと">
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-2 lg:grid lg:grid-cols-2">
           {TEMPLATE_KINDS.map((t) => {
             const on = kinds.includes(t.kind);
             return (
@@ -177,7 +225,7 @@ export function NewLinkForm() {
             );
           })}
           {freeQuestions.map((q, i) => (
-            <div key={i} className="flex items-center gap-2">
+            <div key={i} className="flex items-center gap-2 lg:col-span-2">
               <input
                 value={q}
                 onChange={(e) => setFreeQuestions((list) => list.map((x, k) => (k === i ? e.target.value : x)))}
@@ -208,7 +256,8 @@ export function NewLinkForm() {
         </div>
       </Section>
 
-      <Section title="締め切り">
+      <div className="flex flex-col gap-5 lg:grid lg:grid-cols-2 lg:gap-6 lg:rounded-2xl lg:border lg:border-line lg:bg-card lg:p-5">
+      <Section title="締め切り" plain>
         <div role="radiogroup" aria-label="締め切り" className="flex flex-wrap gap-1.5">
           {[...DEADLINES.map((d) => ({ id: d.id, label: d.label })), { id: "date", label: "日付を選ぶ" }].map((d) => (
             <button
@@ -233,7 +282,7 @@ export function NewLinkForm() {
         </p>
       </Section>
 
-      <Section title="公開範囲">
+      <Section title="公開範囲" plain>
         <div role="radiogroup" aria-label="公開範囲" className="flex flex-col gap-2">
           <ScopeOption checked={isPublic} onSelect={() => setIsPublic(true)} title="公開する（だれでも答えられる）">
             「意見募集中」の一覧に並び、だれでも答えられます。ほかの募集に答えるほど、前に出やすくなります。
@@ -244,28 +293,87 @@ export function NewLinkForm() {
         </div>
         <p className="text-xs text-muted">あとから変えられます。届いた意見は、どちらでも募集した人だけが読めます。</p>
       </Section>
+      </div>
 
+      <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:gap-4">
+      <div className="lg:flex-1">
       <Field label="表示する名前" required note="「〇〇さんが意見を募集しています」と出ます。ニックネームで大丈夫です" noteBelow>
         <input value={makerName} onChange={(e) => setMakerName(e.target.value)} maxLength={20} placeholder="例：きのと" aria-label="表示する名前" className={inputClass} />
       </Field>
+      </div>
 
-      <div className="flex flex-col gap-1.5">
+      <div className="flex flex-col gap-1.5 lg:mt-6 lg:w-64">
         {error && <p role="alert" className="text-sm font-bold text-coral">{error}</p>}
         <button type="button" onClick={submit} disabled={!canSubmit} className="min-h-12 rounded-full bg-coral px-6 font-bold text-night disabled:opacity-40">
           {busy ? "準備しています…" : "募集を始める"}
         </button>
-        <p className="text-center text-xs text-muted">質問は {questionCount} 個。答える人は30秒ほどで答えられます。</p>
+        <p className="text-center text-xs text-muted lg:hidden">質問は {questionCount} 個。答える人は30秒ほどで答えられます。</p>
+      </div>
       </div>
     </div>
+    <Preview {...preview} />
+    </div>
+  );
+}
+
+/** パソコンの幅だけ：入力しながら、答える人にどう見えるかを右に出す */
+function Preview({
+  kind,
+  title,
+  images,
+  tagline,
+  makerName,
+  closesAt,
+  kinds,
+  freeQuestions,
+}: {
+  kind: LinkKind;
+  title: string;
+  images: string[];
+  tagline: string;
+  makerName: string;
+  closesAt: Date | null;
+  kinds: QuestionKind[];
+  freeQuestions: string[];
+}) {
+  const labels = [
+    ...TEMPLATE_KINDS.filter((t) => kinds.includes(t.kind)).map((t) => QUESTION_COPY[t.kind].label),
+    ...freeQuestions.map((q) => q.trim()).filter(Boolean),
+  ];
+  return (
+    <aside aria-label="答える人からの見え方" className="sticky top-6 hidden flex-col gap-2.5 lg:flex">
+      <span className="text-[13px] font-bold text-muted">答える人には、こう見えます</span>
+      <div className="flex flex-col items-start gap-2.5 rounded-2xl border border-line bg-card p-[18px] shadow-[0_12px_32px_rgba(28,24,56,0.08)]">
+        <span className="text-[11px] text-muted">
+          {makerName.trim() || "あなた"}さんが意見を募集しています{closesAt ? ` · ${formatDay(closesAt).replace(/（.）/, "")}まで` : ""}
+        </span>
+        <KindLabel link={{ kind }} />
+        <b className={`font-round text-[19px] leading-snug ${title.trim() ? "" : "text-muted"}`}>{title.trim() || "タイトル"}</b>
+        {images[0] && (
+          // eslint-disable-next-line @next/next/no-img-element -- 端末の中の画像（data URL）なので、Next.js の画像変換は使えない
+          <img src={images[0]} alt="" className="max-h-48 w-full rounded-xl border border-line object-contain" />
+        )}
+        {tagline.trim() && <p className="line-clamp-4 whitespace-pre-wrap text-[13px] leading-relaxed">{tagline.trim()}</p>}
+        {labels.slice(0, 2).map((l) => (
+          <div key={l} className="flex w-full flex-col gap-1.5">
+            <b className="text-[13px]">{l}</b>
+            <div className="h-12 rounded-xl border border-line" />
+          </div>
+        ))}
+        {labels.length > 2 && <span className="text-xs text-muted">…ほか {labels.length - 2} 問</span>}
+      </div>
+      <span className="text-center text-xs text-muted">質問は {labels.length} 個。答える人は30秒ほどで答えられます。</span>
+    </aside>
   );
 }
 
 const inputClass = "min-h-11 w-full rounded-xl border border-line bg-card px-3 text-base outline-none focus:border-coral";
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+/** 入力のまとまり。パソコンの幅ではカードにする（plain は、外側がすでにカードのとき） */
+function Section({ title, plain = false, children }: { title: string; plain?: boolean; children: React.ReactNode }) {
   return (
-    <section className="flex flex-col gap-2.5">
-      <h2 className="font-round text-base font-bold">{title}</h2>
+    <section className={`flex flex-col gap-2.5 ${plain ? "" : "lg:gap-3.5 lg:rounded-2xl lg:border lg:border-line lg:bg-card lg:p-5"}`}>
+      <h2 className="font-round text-base font-bold lg:text-lg">{title}</h2>
       {children}
     </section>
   );

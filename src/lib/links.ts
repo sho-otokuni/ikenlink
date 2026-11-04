@@ -30,6 +30,7 @@ type LinkRow = {
   title: string;
   tagline: string | null;
   url: string | null;
+  urls?: string[] | null;
   images: string[];
   questions: Question[];
   maker_name: string;
@@ -37,7 +38,7 @@ type LinkRow = {
   is_public?: boolean;
 };
 
-const LINK_COLUMNS = "id, kind, title, tagline, url, images, questions, maker_name, created_at, closes_at, is_public";
+const LINK_COLUMNS = "id, kind, title, tagline, url, urls, images, questions, maker_name, created_at, closes_at, is_public";
 
 function toLink(row: LinkRow): FeedbackLink {
   return {
@@ -45,7 +46,8 @@ function toLink(row: LinkRow): FeedbackLink {
     kind: row.kind ?? "other",
     title: row.title,
     tagline: row.tagline,
-    url: row.url,
+    // 前の版で作った募集は、url（1つ）だけを持っている
+    urls: row.urls?.length ? row.urls : row.url ? [row.url] : [],
     images: row.images ?? [],
     questions: row.questions ?? [],
     makerName: row.maker_name,
@@ -144,7 +146,8 @@ export async function createLink(draft: LinkDraft): Promise<Result<string>> {
     kind: draft.kind,
     title: draft.title,
     tagline: draft.tagline,
-    url: draft.url,
+    url: draft.urls[0] ?? null,
+    urls: draft.urls,
     images,
     questions: draft.questions,
     maker_name: draft.makerName,

@@ -33,8 +33,8 @@ export type FeedbackLink = {
   title: string;
   /** 説明（どんなものか、何に迷っているか。なくてもよい） */
   tagline: string | null;
-  /** URL（あれば） */
-  url: string | null;
+  /** URL（5つまで。なくてもよい） */
+  urls: string[];
   /** 画像（4枚まで。なくてもよい） */
   images: string[];
   questions: Question[];

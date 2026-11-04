@@ -50,10 +50,12 @@ export function AnswerFlow({ link }: { link: FeedbackLink }) {
   return (
     <>
       <Header answerer />
-      <main className="mx-auto flex w-full max-w-md flex-1 flex-col px-3 pb-16 pt-2">
+      <main className={`mx-auto flex w-full max-w-md flex-1 flex-col px-3 pb-16 pt-2 ${step === "answer" ? "lg:max-w-[1120px] lg:px-0 lg:pt-10" : "lg:pt-10"}`}>
         {step === "answer" && (
-          <div className="flex flex-col gap-4">
+          // パソコンでは、左に見てほしいもの、右のカードに質問を置く
+          <div className="flex flex-col gap-4 lg:grid lg:grid-cols-[1fr_480px] lg:items-start lg:gap-12">
             <About link={link} />
+            <div className="flex flex-col gap-4 lg:gap-[18px] lg:rounded-2xl lg:border lg:border-line lg:bg-card lg:p-6 lg:shadow-[0_12px_32px_rgba(28,24,56,0.06)]">
             {link.questions.map((q) => (
               <QuestionField key={q.id} question={q} value={answers[q.id] ?? ""} onChange={(v) => set(q.id, v)} />
             ))}
@@ -66,7 +68,8 @@ export function AnswerFlow({ link }: { link: FeedbackLink }) {
               <button type="button" onClick={submit} disabled={!answered || sending} className="min-h-12 rounded-full bg-coral px-6 font-bold text-night transition disabled:opacity-40">
                 {sending ? "送っています…" : "意見を送る"}
               </button>
-              <p className="text-center text-[11px] text-muted">送った意見は、募集した人だけが読めます。名前は送られません。</p>
+              <p className="text-center text-[11px] text-muted lg:text-xs">送った意見は、募集した人だけが読めます。名前は送られません。</p>
+            </div>
             </div>
           </div>
         )}
@@ -80,41 +83,42 @@ export function AnswerFlow({ link }: { link: FeedbackLink }) {
 /** 見てほしいもの（だれの募集か・種類・タイトル・画像・説明・URL） */
 function About({ link }: { link: FeedbackLink }) {
   return (
-    <section className="flex flex-col items-start gap-2">
-      <p className="text-xs text-muted">
+    <section className="flex flex-col items-start gap-2 lg:gap-3.5">
+      <p className="text-xs text-muted lg:text-[13px]">
         {link.makerName}さんが意見を募集しています
         {link.closesAt ? ` · ${formatDay(link.closesAt).replace(/（.）/, "")}まで` : ""}
       </p>
       <KindLabel link={link} />
-      <h1 className="font-round text-[22px] font-bold leading-snug">{link.title}</h1>
+      <h1 className="font-round text-[22px] font-bold leading-snug lg:text-[34px]">{link.title}</h1>
       {link.images.length > 0 && (
-        <div className="-mx-3 flex w-[calc(100%+1.5rem)] gap-2 overflow-x-auto px-3">
+        <div className="-mx-3 flex w-[calc(100%+1.5rem)] gap-2 overflow-x-auto px-3 lg:mx-0 lg:w-full lg:flex-wrap lg:gap-3 lg:overflow-visible lg:px-0">
           {link.images.map((src, i) => (
             // 押すと、元の大きさで開く
             <a key={src} href={src} target="_blank" rel="noopener noreferrer" className="shrink-0 overflow-hidden rounded-xl border border-line bg-card">
               {/* 見てほしいものの中心なので、すぐ読み込む（大きさが決まる前は幅0になり、遅らせると読み込まれないことがある） */}
-              <Image src={src} alt={`画像 ${i + 1}`} width={0} height={0} sizes="320px" loading="eager" className="h-52 w-auto min-w-24 max-w-[80vw] object-contain" />
+              <Image src={src} alt={`画像 ${i + 1}`} width={0} height={0} sizes="320px" loading="eager" className="h-52 w-auto min-w-24 max-w-[80vw] object-contain lg:h-80 lg:max-w-full" />
             </a>
           ))}
         </div>
       )}
-      {link.tagline && <p className="whitespace-pre-wrap text-sm leading-relaxed">{link.tagline}</p>}
-      {link.url && (
+      {link.tagline && <p className="whitespace-pre-wrap text-sm leading-relaxed lg:text-base lg:leading-loose">{link.tagline}</p>}
+      {link.urls.map((url) => (
         <a
-          href={link.url}
+          key={url}
+          href={url}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex min-h-12 w-full items-center gap-2.5 rounded-xl border-2 border-coral bg-coral-tint px-3 py-2"
+          className="flex min-h-12 w-full items-center gap-2.5 rounded-xl border-2 border-coral bg-coral-tint px-3 py-2 lg:min-h-14 lg:px-3.5"
         >
           <LinkIcon />
           <span className="flex min-w-0 flex-1 flex-col">
             <span className="text-sm font-bold">リンク</span>
             {/* どこへ飛ぶのか分かるよう、URL もそのまま見せる */}
-            <span className="truncate text-xs underline underline-offset-2">{link.url.replace(/^https?:\/\//, "").replace(/\/$/, "")}</span>
+            <span className="truncate text-xs underline underline-offset-2 lg:text-[13px]">{url.replace(/^https?:\/\//, "").replace(/\/$/, "")}</span>
           </span>
           <span aria-hidden className="text-base font-bold">↗</span>
         </a>
-      )}
+      ))}
     </section>
   );
 }
