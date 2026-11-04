@@ -95,8 +95,16 @@ export function LinkResults({ id, created, saved = false, token }: { id: string;
           {count > 0 ? (
             link.questions.map((q) => <QuestionResult key={q.id} question={q} responses={responses} />)
           ) : (
-            <p className="text-sm leading-relaxed text-muted">まだ意見は届いていません。リンクを X や友だちに送ってみましょう。</p>
+            <section className="flex flex-col gap-1 lg:items-start lg:gap-2 lg:rounded-2xl lg:border lg:border-dashed lg:border-line lg:p-8">
+              <b className="text-sm lg:font-round lg:text-lg">まだ意見は届いていません</b>
+              <p className="text-sm leading-relaxed text-muted">リンクを X や友だちに送ってみましょう。届いた意見は、ここに質問ごとに並びます。</p>
+              <Link href={`/l/${link.id}`} className="flex min-h-11 items-center text-xs font-bold text-coral lg:text-sm">
+                答える画面を見てみる ›
+              </Link>
+            </section>
           )}
+          {/* 募集した中身（何を見せて、何を聞いたか）。パソコンでは左の列の下、スマホでは一番下の近くに出る */}
+          <LinkSummary link={link} />
         </div>
 
         <aside className="contents lg:col-start-2 lg:row-start-1 lg:flex lg:flex-col lg:gap-4">
@@ -130,6 +138,50 @@ export function LinkResults({ id, created, saved = false, token }: { id: string;
         </aside>
       </div>
     </div>
+  );
+}
+
+/** 募集の中身：画像・説明・リンク・聞いていること */
+function LinkSummary({ link }: { link: FeedbackLink }) {
+  return (
+    <details className="group rounded-2xl border border-line bg-card p-3 lg:p-5" open>
+      <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between text-sm font-bold lg:text-base">
+        募集の中身
+        <span className="text-xs font-normal text-muted group-open:hidden">ひらく</span>
+        <span className="hidden text-xs font-normal text-muted group-open:inline">とじる</span>
+      </summary>
+      <div className="flex flex-col gap-3 pt-1">
+        {link.images.length > 0 && (
+          <div className="flex gap-2 overflow-x-auto">
+            {link.images.map((src, i) => (
+              <a key={src} href={src} target="_blank" rel="noopener noreferrer" className="relative h-28 w-28 shrink-0 overflow-hidden rounded-xl border border-line">
+                <Image src={src} alt={`画像 ${i + 1}`} fill sizes="112px" className="object-cover" />
+              </a>
+            ))}
+          </div>
+        )}
+        {link.tagline && <p className="whitespace-pre-wrap text-sm leading-relaxed">{link.tagline}</p>}
+        {link.urls.length > 0 && (
+          <ul className="flex flex-col gap-1">
+            {link.urls.map((u) => (
+              <li key={u} className="truncate text-xs">
+                <a href={u} target="_blank" rel="noopener noreferrer" className="underline underline-offset-2">
+                  {u.replace(/^https?:\/\//, "").replace(/\/$/, "")}
+                </a>
+              </li>
+            ))}
+          </ul>
+        )}
+        <div className="flex flex-col gap-1">
+          <span className="text-xs font-bold text-muted">聞いていること</span>
+          <ol className="flex list-decimal flex-col gap-0.5 pl-5 text-sm">
+            {link.questions.map((q) => (
+              <li key={q.id}>{q.kind === "free" ? q.text : QUESTION_COPY[q.kind].label}</li>
+            ))}
+          </ol>
+        </div>
+      </div>
+    </details>
   );
 }
 
@@ -245,8 +297,8 @@ function SettingsCard({ id, initialPublic, initialClosesAt }: { id: string; init
           : "一覧には並びません。リンクを送った相手だけが答えられます。"}
       </p>
 
-      <div className="flex items-center gap-2 border-t border-line pt-2">
-        <span className="flex flex-1 flex-col">
+      <div className="flex flex-wrap items-center gap-2 border-t border-line pt-2">
+        <span className="flex min-w-full flex-col">
           <b className="text-sm">締め切り</b>
           <span className={`text-xs ${closed ? "font-bold text-coral" : "text-muted"}`}>{deadlineText(closesAt)}</span>
         </span>
