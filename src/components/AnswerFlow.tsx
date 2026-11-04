@@ -158,17 +158,13 @@ function QuestionField({ question, value, onChange }: { question: Question; valu
   );
 }
 
-/** 一覧へ・ホームへ（お礼と締め切り後の画面の下） */
+/** 一覧へ（お礼と締め切り後の画面の下） */
 function Onward() {
+  // 答えたあとの行き先は「意見募集中」の一覧（使い始めた人にとっての「ホーム」はここ）
   return (
-    <>
-      <Link href="/list" className="flex min-h-12 w-full items-center justify-center rounded-full bg-coral px-4 text-center font-bold text-night">
-        一覧でほかの意見に答える
-      </Link>
-      <Link href="/" className="-mt-1.5 flex min-h-12 w-full items-center justify-center rounded-full border border-line bg-card font-bold">
-        ホームに戻る
-      </Link>
-    </>
+    <Link href="/list" className="flex min-h-12 w-full items-center justify-center rounded-full bg-coral px-4 text-center font-bold text-night">
+      一覧でほかの意見に答える
+    </Link>
   );
 }
 

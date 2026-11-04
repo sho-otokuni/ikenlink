@@ -46,7 +46,7 @@ export type EditTarget = { link: FeedbackLink; isPublic: boolean; responseCount:
 export function NewLinkForm({ editing }: { editing?: EditTarget }) {
   const router = useRouter();
   const start = editing?.link;
-  const [kind, setKind] = useState<LinkKind>(start?.kind ?? "idea");
+  const [kind, setKind] = useState<LinkKind>(start?.kind ?? "app");
   const [title, setTitle] = useState(start?.title ?? "");
   const [images, setImages] = useState<string[]>(start?.images ?? []);
   const [tagline, setTagline] = useState(start?.tagline ?? "");
@@ -242,7 +242,7 @@ export function NewLinkForm({ editing }: { editing?: EditTarget }) {
             onChange={(e) => setTagline(e.target.value)}
             maxLength={400}
             rows={3}
-            placeholder="例：一人で家計簿アプリを作っています。はじめの画面で何ができるか伝わるか、続けて使いたくなるかを知りたいです。"
+            placeholder="例：個人で家計簿アプリを作っています。初めて開いたときに使い方が分かるかどうか、率直な感想を聞かせてください。"
             aria-label="説明"
             className="rounded-xl border border-line bg-card px-3 py-2.5 text-base leading-relaxed outline-none focus:border-coral"
           />
