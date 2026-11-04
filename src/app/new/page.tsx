@@ -3,16 +3,16 @@ import type { Metadata } from "next";
 import { Header } from "@/components/Header";
 import { NewLinkForm } from "@/components/NewLinkForm";
 
-export const metadata: Metadata = { title: "意見リンクを作る｜意見リンク" };
+export const metadata: Metadata = { title: "意見を募集する｜意見リンク" };
 
-/** 意見リンクを作る画面 */
+/** 意見を募集する画面 */
 export default function NewLinkPage() {
   return (
     <>
       <Header />
-      <main className="mx-auto w-full max-w-2xl flex-1 px-4 pb-20 pt-6">
-        <h1 className="font-round text-2xl font-bold">意見リンクを作る</h1>
-        <p className="mt-2 text-sm leading-relaxed text-muted">作ったものと、聞きたいことを決めるだけ。できたリンクを X などに貼ると、意見が集まります。</p>
+      <main className="mx-auto w-full max-w-2xl flex-1 px-3 pb-16 pt-3">
+        <h1 className="font-round text-[22px] font-bold">意見を募集する</h1>
+        <p className="mt-1 text-[13px] leading-relaxed text-muted">まだ形になっていなくても大丈夫。画像1枚から聞けます。</p>
         <NewLinkForm />
       </main>
     </>

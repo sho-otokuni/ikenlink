@@ -1,6 +1,6 @@
 import { OG_SIZE, siteCard } from "@/lib/og";
 
-export const alt = "意見リンク：作ったものに、人の意見を。";
+export const alt = "意見リンク：「どう思う？」を、気軽に聞ける。";
 export const size = OG_SIZE;
 export const contentType = "image/png";
 

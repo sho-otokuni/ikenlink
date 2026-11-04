@@ -11,7 +11,7 @@ export default function ResultsPage(props: PageProps<"/me/[id]">) {
   return (
     <>
       <Header />
-      <main className="mx-auto w-full max-w-2xl flex-1 px-4 pb-20 pt-6">
+      <main className="mx-auto w-full max-w-2xl flex-1 px-3 pb-16 pt-3">
         <Suspense fallback={<div className="h-40 rounded-2xl bg-line" aria-busy />}>
           <Results params={props.params} searchParams={props.searchParams} />
         </Suspense>

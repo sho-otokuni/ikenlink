@@ -61,7 +61,7 @@ function Frame({ children, footer }: { children: React.ReactNode; footer: string
     >
       <Bubbles />
       <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-        <div style={{ width: 28, height: 28, borderRadius: 999, background: C.coral }} />
+        <Mark />
         <div style={{ fontFamily: "Zen", fontSize: 34 }}>意見リンク</div>
       </div>
       {children}
@@ -69,6 +69,21 @@ function Frame({ children, footer }: { children: React.ReactNode; footer: string
         <div style={{ display: "flex", background: C.peach, color: C.ink, fontSize: 30, padding: "12px 28px", borderRadius: 999 }}>{footer}</div>
       </div>
     </div>
+  );
+}
+
+/** ロゴのマーク（2つの吹き出しが絡み合う）。components/Logo.tsx と同じ形 */
+function Mark() {
+  return (
+    <svg width="52" height="52" viewBox="0 0 64 64">
+      <path d="M11 34l-3 10 10-8z" fill={C.coral} />
+      <rect x="4" y="8" width="36" height="28" rx="9" fill="none" stroke={C.coral} strokeWidth="5" />
+      <path d="M24 32v12" stroke={C.bg} strokeWidth="10" />
+      <path d="M53 50l3 10-10-8z" fill={C.peach} />
+      <rect x="24" y="24" width="36" height="28" rx="9" fill="none" stroke={C.peach} strokeWidth="5" />
+      <path d="M40 19v9" stroke={C.bg} strokeWidth="10" />
+      <path d="M40 18v11" stroke={C.coral} strokeWidth="5" />
+    </svg>
   );
 }
 
@@ -105,17 +120,17 @@ function Bubbles() {
 
 /** サイト全体のカード */
 export async function siteCard() {
-  const heading = "作ったものに、人の意見を。意見リンク";
-  const body = "URL を貼るだけで、本物の人の意見が集まる。答える人は登録なし・30秒";
+  const heading = "「どう思う？」を、気軽に聞ける。意見リンク";
+  const body = "画像や URL を貼るだけで、意見が集まる。答える人は登録なし・30秒";
   return new ImageResponse(
     (
       <Frame footer="答える人は登録なし・30秒">
         <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
           <div style={{ display: "flex", flexDirection: "column", fontFamily: "Zen", fontSize: 88, lineHeight: 1.25 }}>
-            <div>作ったものに、</div>
-            <div>人の意見を。</div>
+            <div>「どう思う？」を、</div>
+            <div>気軽に聞ける。</div>
           </div>
-          <div style={{ fontSize: 32, color: C.muted, maxWidth: 680 }}>URL を貼るだけで、本物の人の意見が集まる</div>
+          <div style={{ fontSize: 32, color: C.muted, maxWidth: 680 }}>画像や URL を貼るだけで、意見が集まる</div>
         </div>
       </Frame>
     ),
@@ -123,9 +138,7 @@ export async function siteCard() {
   );
 }
 
-/**
- * リンクごとのカード。5秒テストを公平にするため、画面の写真と説明は載せない（名前と募集している人だけ）
- */
+/** 募集ごとのカード（タイトルと、募集している人） */
 export async function linkCard(title: string, makerName: string) {
   const t = clip(title, 28);
   const lead = `${clip(makerName, 12)}さんが、意見を募集しています`;

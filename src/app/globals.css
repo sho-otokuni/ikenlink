@@ -16,6 +16,8 @@
   --peach-tint: #fff0e0;
   --leaf: #78c48c;
   --leaf-tint: #e6f4ea;
+  --leaf-dark: #3f8f57;
+  --grape-tint: #ece8fb;
   --night: #1c1838;
 }
 
@@ -31,6 +33,8 @@
   --color-peach-tint: var(--peach-tint);
   --color-leaf: var(--leaf);
   --color-leaf-tint: var(--leaf-tint);
+  --color-leaf-dark: var(--leaf-dark);
+  --color-grape-tint: var(--grape-tint);
   --color-night: var(--night);
   --font-sans: var(--font-noto), system-ui, sans-serif;
   --font-round: var(--font-zen), var(--font-noto), system-ui, sans-serif;
@@ -46,6 +50,8 @@
     --coral-tint: #3a1e19;
     --peach-tint: #3a2a18;
     --leaf-tint: #183224;
+    --leaf-dark: #8fd4a2;
+    --grape-tint: #262040;
   }
 }
 

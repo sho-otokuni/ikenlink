@@ -3,10 +3,13 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
-import { fetchMyLinks, type MyLink } from "@/lib/links";
+import { AnsweredCard } from "@/components/AnsweredCard";
+import { fetchMyAnswerCount, fetchMyLinks, type MyLink } from "@/lib/links";
+import { isClosed } from "@/lib/questions";
 
 export function MyLinks() {
   const [links, setLinks] = useState<MyLink[] | null>(null);
+  const [answered, setAnswered] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -16,43 +19,51 @@ export function MyLinks() {
       if (r.ok) setLinks(r.data);
       else setError(r.message);
     });
+    fetchMyAnswerCount().then((n) => alive && setAnswered(n));
     return () => {
       alive = false;
     };
   }, []);
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-3">
       <div className="flex items-center justify-between gap-3">
         <h1 className="font-round text-2xl font-bold">自分のリンク</h1>
-        <Link href="/new" className="flex min-h-11 items-center rounded-full bg-coral px-4 text-sm font-bold text-night">
+        <Link href="/new" className="flex min-h-11 items-center rounded-full bg-coral px-4 text-[13px] font-bold text-night">
           ＋ 作る
         </Link>
       </div>
+      {answered !== null && (
+        <AnsweredCard count={answered} title="ほかの募集に答えた数" body="答えるほど、公開中の募集が一覧で前に出やすくなります。">
+          <Link href="/list" className="flex min-h-11 items-center text-[13px] font-bold text-coral">
+            募集に答えに行く ›
+          </Link>
+        </AnsweredCard>
+      )}
       {error && <p role="alert" className="text-sm font-bold text-coral">{error}</p>}
       {!links && !error && <div className="h-16 rounded-2xl bg-line" aria-busy />}
-      {links?.length === 0 && <p className="text-sm text-muted">まだリンクはありません。作ったものの URL を貼って、最初のリンクを作ってみましょう。</p>}
-      <ul className="flex flex-col gap-3">
+      {links?.length === 0 && <p className="text-sm text-muted">まだ募集はありません。画像1枚からでも、意見を集められます。</p>}
+      <ul className="flex flex-col gap-2">
         {links?.map((l) => (
           <li key={l.id}>
-            <Link href={`/me/${l.id}`} className="flex min-h-16 items-center gap-3 rounded-2xl border border-line bg-card p-3 hover:border-coral">
-              <div className="flex flex-1 flex-col gap-0.5">
+            <Link href={`/me/${l.id}`} className="flex min-h-14 items-center gap-3 rounded-2xl border border-line bg-card px-3 py-2.5 hover:border-coral">
+              <span className="flex flex-1 flex-col gap-0.5">
                 <span className="font-bold">{l.title}</span>
                 <span className="text-xs text-muted">
-                  質問 {l.questions.length}個
+                  {isClosed(l.closesAt) ? "締め切り" : l.isPublic ? "公開" : "リンクを知っている人だけ"}
                   {l.lastResponseAt ? ` · 最後の意見 ${new Date(l.lastResponseAt).toLocaleDateString("ja-JP")}` : ""}
                 </span>
-              </div>
+              </span>
               <span className="flex flex-col items-end">
                 <span className="font-round text-2xl font-bold tabular-nums">{l.responseCount}</span>
-                <span className="text-xs text-muted">件の意見</span>
+                <span className="text-[11px] text-muted">件の意見</span>
               </span>
             </Link>
           </li>
         ))}
       </ul>
       <p className="text-xs leading-relaxed text-muted">
-        いまは登録なしで使えます。ここに出るのは、このブラウザで作ったリンクだけです。ほかの端末やブラウザから意見を見るときは、リンクごとの「自分専用の URL」を使ってください。
+        いまは登録なしで使えます。ここに出るのは、このブラウザで作った募集だけです。ほかの端末やブラウザから意見を見るときは、募集ごとの「自分専用の URL」を使ってください。
       </p>
     </div>
   );

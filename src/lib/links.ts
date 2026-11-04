@@ -1,21 +1,32 @@
 import { isSupabaseConfigured, supabase } from "@/lib/supabase";
-import type { Answers, FeedbackLink, Question } from "@/lib/types";
+import type { Answers, FeedbackLink, LinkKind, Question } from "@/lib/types";
 
 type Result<T> = { ok: true; data: T } | { ok: false; message: string };
 const NETWORK = "通信環境を確かめて、もう一度お試しください";
 const NOT_READY = "まだデータベースにつながっていません（.env.local の設定待ち）";
 
 /** 作った人が見る、リンクと届いた意見 */
-export type MyLink = FeedbackLink & { createdAt: string; responseCount: number; lastResponseAt: string | null };
+export type MyLink = FeedbackLink & { createdAt: string; isPublic: boolean; responseCount: number; lastResponseAt: string | null };
 export type Response = { id: string; answers: Answers; createdAt: string };
-/** 意見を見る画面に出すもの。adminToken は、作った人が自分の端末で開いたときだけ入る */
 /** 意見を見る画面に出すもの。adminToken と isPublic は、作った人が自分の端末で開いたときだけ入る */
 export type Results = { link: FeedbackLink; responses: Response[]; adminToken: string | null; isPublic: boolean | null };
-/** 意見募集中の一覧の1件（届いた意見の中身は出さず、数だけ） */
-export type PublicLink = { id: string; title: string; makerName: string; questionCount: number; responseCount: number; createdAt: string };
+/** 意見募集中の一覧の1件（届いた意見の中身は出さず、数だけ）。ownerAnswered は募集した人がほかの募集に答えた数 */
+export type PublicLink = {
+  id: string;
+  kind: LinkKind;
+  title: string;
+  image: string | null;
+  makerName: string;
+  responseCount: number;
+  createdAt: string;
+  closesAt: string | null;
+  ownerAnswered: number;
+};
 
 type LinkRow = {
   id: string;
+  kind: LinkKind | null;
+  closes_at: string | null;
   title: string;
   tagline: string | null;
   url: string | null;
@@ -26,17 +37,19 @@ type LinkRow = {
   is_public?: boolean;
 };
 
-const LINK_COLUMNS = "id, title, tagline, url, images, questions, maker_name, created_at, is_public";
+const LINK_COLUMNS = "id, kind, title, tagline, url, images, questions, maker_name, created_at, closes_at, is_public";
 
 function toLink(row: LinkRow): FeedbackLink {
   return {
     id: row.id,
+    kind: row.kind ?? "other",
     title: row.title,
     tagline: row.tagline,
     url: row.url,
     images: row.images ?? [],
     questions: row.questions ?? [],
     makerName: row.maker_name,
+    closesAt: row.closes_at ?? null,
   };
 }
 
@@ -51,14 +64,27 @@ export async function getLink(id: string): Promise<FeedbackLink | null> {
   return data ? toLink(data) : null;
 }
 
-/** 意見を送る（だれが送ったかは残さない） */
+/**
+ * 意見を送る。募集した人には、だれが送ったかは見せない。
+ * 答えた数を数えるため、登録なしの匿名ログインで送る（始められなくても、意見は送れるようにする）
+ */
 export async function submitResponse(linkId: string, answers: Answers): Promise<Result<null>> {
   if (!isSupabaseConfigured) return { ok: false, message: NOT_READY };
+  await ensureUser();
   const cleaned = Object.fromEntries(Object.entries(answers).map(([k, v]) => [k, v.trim().slice(0, 500)]).filter(([, v]) => v));
   const { error } = await supabase.from("responses").insert({ link_id: linkId, answers: cleaned });
   if (error?.message.includes("too_many_responses")) return { ok: false, message: "いま意見が集中しています。少し待ってから、もう一度送ってください" };
+  // 締め切りを過ぎていると、データベースの権限で断られる
+  if (error?.code === "42501") return { ok: false, message: "この募集は締め切られました" };
   if (error) return { ok: false, message: `送れませんでした。${NETWORK}` };
   return { ok: true, data: null };
+}
+
+/** ほかの募集に答えた数（中身のある答えだけ。同じ募集は1件）。まだ始めていない人は0 */
+export async function fetchMyAnswerCount(): Promise<number> {
+  if (!isSupabaseConfigured || !(await currentUserId())) return 0;
+  const { data } = await supabase.rpc("my_answer_count");
+  return Number(data ?? 0);
 }
 
 // ============================================================
@@ -115,12 +141,14 @@ export async function createLink(draft: LinkDraft): Promise<Result<string>> {
   }
   const { error } = await supabase.from("links").insert({
     id,
+    kind: draft.kind,
     title: draft.title,
     tagline: draft.tagline,
     url: draft.url,
     images,
     questions: draft.questions,
     maker_name: draft.makerName,
+    closes_at: draft.closesAt,
     is_public: draft.isPublic,
   });
   if (error) return { ok: false, message: `リンクを作れませんでした。${NETWORK}` };
@@ -147,6 +175,7 @@ export async function fetchMyLinks(): Promise<Result<MyLink[]>> {
     data: data.map((row) => ({
       ...toLink(row),
       createdAt: row.created_at,
+      isPublic: row.is_public ?? false,
       responseCount: Number(byLink.get(row.id)?.response_count ?? 0),
       lastResponseAt: byLink.get(row.id)?.last_response_at ?? null,
     })),
@@ -194,20 +223,34 @@ export async function fetchResultsByToken(id: string, token: string): Promise<Re
   };
 }
 
-/** 意見募集中の一覧（新しい順） */
+/** 意見募集中の一覧（新しい順。締め切ったものは入らない） */
 export async function fetchPublicLinks(): Promise<Result<PublicLink[]>> {
   if (!isSupabaseConfigured) return { ok: false, message: NOT_READY };
-  const { data, error } = await supabase.rpc("public_links", { p_limit: 60 });
+  const { data, error } = await supabase.rpc("public_links", { p_limit: 100 });
   if (error || !data) return { ok: false, message: `読み込めませんでした。${NETWORK}` };
+  type Row = {
+    id: string;
+    kind: LinkKind;
+    title: string;
+    image: string | null;
+    maker_name: string;
+    response_count: number;
+    created_at: string;
+    closes_at: string | null;
+    owner_answered: number;
+  };
   return {
     ok: true,
-    data: (data as { id: string; title: string; maker_name: string; question_count: number; response_count: number; created_at: string }[]).map((r) => ({
+    data: (data as Row[]).map((r) => ({
       id: r.id,
+      kind: r.kind,
       title: r.title,
+      image: r.image,
       makerName: r.maker_name,
-      questionCount: r.question_count,
       responseCount: Number(r.response_count),
       createdAt: r.created_at,
+      closesAt: r.closes_at,
+      ownerAnswered: Number(r.owner_answered),
     })),
   };
 }
@@ -215,6 +258,12 @@ export async function fetchPublicLinks(): Promise<Result<PublicLink[]>> {
 /** 意見募集中の一覧に載せる・外す（作った人だけ） */
 export async function setLinkPublic(id: string, isPublic: boolean): Promise<Result<null>> {
   const { error } = await supabase.from("links").update({ is_public: isPublic }).eq("id", id);
+  return error ? { ok: false, message: `変えられませんでした。${NETWORK}` } : { ok: true, data: null };
+}
+
+/** 締め切りを変える（null で締め切りなし。いまの時刻にすると、すぐ締め切る） */
+export async function setLinkDeadline(id: string, closesAt: string | null): Promise<Result<null>> {
+  const { error } = await supabase.from("links").update({ closes_at: closesAt }).eq("id", id);
   return error ? { ok: false, message: `変えられませんでした。${NETWORK}` } : { ok: true, data: null };
 }
 

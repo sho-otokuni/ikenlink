@@ -9,10 +9,9 @@ export async function generateMetadata(props: PageProps<"/l/[id]">): Promise<Met
   const { id } = await props.params;
   const link = await getLink(id);
   if (!link) return { title: "意見リンク" };
-  // 5秒テストを公平にするため、説明（tagline）はカードにも出さない
   return {
-    title: `${link.title}への意見を募集中｜意見リンク`,
-    description: `${link.makerName}さんが、作ったものへの意見を募集しています。登録なし、30秒で答えられます。`,
+    title: `${link.title}｜意見リンク`,
+    description: `${link.makerName}さんが意見を募集しています。登録なし、30秒で答えられます。`,
   };
 }
 

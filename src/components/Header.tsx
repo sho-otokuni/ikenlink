@@ -1,20 +1,36 @@
 import Link from "next/link";
 
-/** 作る人の画面の上の帯。ロゴと「自分のリンク」 */
-export function Header() {
+import { LogoMark } from "@/components/Logo";
+
+const NAV = [
+  { href: "/list", label: "意見募集中" },
+  { href: "/me", label: "自分のリンク" },
+] as const;
+
+/**
+ * 上の帯。左上のロゴを押すとホームへ。
+ * current は今いる画面（下線を引く）。answerer は答える人の画面で、「自分のリンク」を出さない
+ */
+export function Header({ current, answerer = false }: { current?: "/list" | "/me"; answerer?: boolean }) {
   return (
-    <header className="mx-auto flex w-full max-w-2xl items-center justify-between px-4 pt-4">
-      <Link href="/" className="flex min-h-11 items-center gap-2">
-        <span className="h-3 w-3 rounded-full bg-coral" aria-hidden />
+    <header className="mx-auto flex w-full max-w-2xl items-center justify-between pl-3 pr-2 pt-1">
+      <Link href="/" aria-label="意見リンク（ホームへ）" className="flex min-h-11 items-center gap-1.5 pr-1">
+        <LogoMark />
         <span className="font-round text-base font-bold">意見リンク</span>
       </Link>
       <nav className="flex items-center">
-        <Link href="/list" className="flex min-h-11 items-center rounded-full px-3 text-sm font-bold text-muted hover:text-ink">
-          意見募集中
-        </Link>
-        <Link href="/me" className="flex min-h-11 items-center rounded-full px-3 text-sm font-bold text-muted hover:text-ink">
-          自分のリンク
-        </Link>
+        {NAV.filter((n) => !answerer || n.href === "/list").map((n) => (
+          <Link
+            key={n.href}
+            href={n.href}
+            aria-current={current === n.href ? "page" : undefined}
+            className={`flex min-h-11 items-center px-2.5 text-[13px] font-bold ${
+              current === n.href ? "text-ink shadow-[inset_0_-2px_0_var(--coral)]" : "text-muted hover:text-ink"
+            }`}
+          >
+            {n.label}
+          </Link>
+        ))}
       </nav>
     </header>
   );
