@@ -37,7 +37,7 @@ export function ProfileCard({ initialName }: { initialName: string }) {
             onChange={(e) => setName(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && save()}
             maxLength={20}
-            placeholder="例：きのと"
+            placeholder="例：はなこ"
             aria-label="表示する名前"
             className="min-h-11 min-w-0 flex-1 rounded-xl border border-line bg-card px-3 text-base outline-none focus:border-coral"
           />

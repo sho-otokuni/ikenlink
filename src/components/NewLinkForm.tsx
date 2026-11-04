@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 
-import { CalendarIcon } from "@/components/icons";
+import { CalendarIcon, LinkIcon } from "@/components/icons";
 import { KindLabel } from "@/components/KindLabel";
 import { getAccount, setDisplayName } from "@/lib/auth";
 import { shrinkImage } from "@/lib/image";
@@ -60,7 +60,7 @@ export function NewLinkForm({ editing }: { editing?: EditTarget }) {
   // 締め切り：DEADLINES の id か、"date"（日付を選ぶ）。直すときは、いまの締め切りの日付から始める
   const [deadline, setDeadline] = useState(start ? (start.closesAt ? "date" : "none") : "1w");
   const [deadlineDate, setDeadlineDate] = useState(start?.closesAt ? dayString(start.closesAt) : "");
-  // 公開すると、意見募集中の一覧に並び、だれでも答えられる
+  // 公開すると、意見募集中の一覧に並び、誰でも答えられる
   const [isPublic, setIsPublic] = useState(editing?.isPublic ?? true);
   const [makerName, setMakerName] = useState(start?.makerName ?? "");
   // プロフィールに保存してある「表示する名前」（なければ空。初めて募集したときに保存する）
@@ -178,7 +178,7 @@ export function NewLinkForm({ editing }: { editing?: EditTarget }) {
     router.push(`/me/${r.data}?created=1`);
   }
 
-  const preview = { kind, title, images, tagline, makerName, closesAt, kinds, freeQuestions };
+  const preview = { kind, title, images, tagline, urls, makerName, closesAt, kinds, freeQuestions };
 
   return (
     <div className="mt-4 lg:mt-6 lg:grid lg:grid-cols-[1fr_400px] lg:items-start lg:gap-12">
@@ -199,7 +199,7 @@ export function NewLinkForm({ editing }: { editing?: EditTarget }) {
           ))}
         </div>
         <Field label="タイトル" required>
-          <input value={title} onChange={(e) => setTitle(e.target.value)} maxLength={40} placeholder="例：週末だけの古本カフェ、どう思う？" aria-label="タイトル" className={inputClass} />
+          <input value={title} onChange={(e) => setTitle(e.target.value)} maxLength={40} placeholder="例：作っている家計簿アプリ、使ってみたい？" aria-label="タイトル" className={inputClass} />
         </Field>
         <Field label={`画像（${images.length}/${MAX_IMAGES}）`} note="スクショ、手書きのメモ、ラフでも OK">
           <div className="flex flex-wrap gap-2">
@@ -242,7 +242,7 @@ export function NewLinkForm({ editing }: { editing?: EditTarget }) {
             onChange={(e) => setTagline(e.target.value)}
             maxLength={400}
             rows={3}
-            placeholder="例：駅前の空き店舗で、土日だけ古本カフェをやろうと思っています。値段の付け方に迷っています。"
+            placeholder="例：一人で家計簿アプリを作っています。はじめの画面で何ができるか伝わるか、続けて使いたくなるかを知りたいです。"
             aria-label="説明"
             className="rounded-xl border border-line bg-card px-3 py-2.5 text-base leading-relaxed outline-none focus:border-coral"
           />
@@ -365,11 +365,11 @@ export function NewLinkForm({ editing }: { editing?: EditTarget }) {
 
       <Section title="公開範囲">
         <div role="radiogroup" aria-label="公開範囲" className="flex flex-col gap-2 lg:grid lg:grid-cols-2">
-          <ScopeOption checked={isPublic} onSelect={() => setIsPublic(true)} title="公開する（だれでも答えられる）">
-            「意見募集中」の一覧に並び、だれでも答えられます。ほかの意見に答えるほど、前に出やすくなります。
+          <ScopeOption checked={isPublic} onSelect={() => setIsPublic(true)} title="公開する（誰でも答えられる）">
+            「意見募集中」の一覧に並び、誰でも答えられます。
           </ScopeOption>
           <ScopeOption checked={!isPublic} onSelect={() => setIsPublic(false)} title="リンクを知っている人だけ">
-            一覧には並びません。送った相手だけが答えられます。
+            一覧には並びません。リンクを送った相手だけが答えられます。
           </ScopeOption>
         </div>
         <p className="text-xs text-muted">あとから変えられます。届いた意見は、どちらでも募集した人だけが読めます。</p>
@@ -381,12 +381,12 @@ export function NewLinkForm({ editing }: { editing?: EditTarget }) {
         required
         note={
           profileName && makerName.trim() === profileName
-            ? "プロフィールの名前が入っています。変えたいときは、自分のリンクの画面のプロフィールから"
+            ? "プロフィールで設定した名前が自動で入ります。※入力欄から変更可"
             : "「〇〇さんが意見を募集しています」と出ます。ニックネームで大丈夫です"
         }
         noteBelow
       >
-        <input value={makerName} onChange={(e) => setMakerName(e.target.value)} maxLength={20} placeholder="例：きのと" aria-label="表示する名前" className={inputClass} />
+        <input value={makerName} onChange={(e) => setMakerName(e.target.value)} maxLength={20} placeholder="例：はなこ" aria-label="表示する名前" className={inputClass} />
       </Field>
       </div>
 
@@ -411,6 +411,7 @@ function Preview({
   title,
   images,
   tagline,
+  urls,
   makerName,
   closesAt,
   kinds,
@@ -420,17 +421,26 @@ function Preview({
   title: string;
   images: string[];
   tagline: string;
+  urls: string[];
   makerName: string;
   closesAt: Date | null;
   kinds: QuestionKind[];
   freeQuestions: string[];
 }) {
-  const labels = [
-    ...TEMPLATE_KINDS.filter((t) => kinds.includes(t.kind)).map((t) => QUESTION_COPY[t.kind].label),
-    ...freeQuestions.map((q) => q.trim()).filter(Boolean),
+  // ふだんは上のほうだけ。「全体を見る」を押したときだけ、答える画面の全部（画像・リンク・すべての質問）を出す
+  const [full, setFull] = useState(false);
+  const questions = [
+    ...TEMPLATE_KINDS.filter((t) => kinds.includes(t.kind)).map((t) => ({ label: QUESTION_COPY[t.kind].label, choices: QUESTION_COPY[t.kind].choices })),
+    ...freeQuestions
+      .map((q) => q.trim())
+      .filter(Boolean)
+      .map((label) => ({ label, choices: undefined as string[] | undefined })),
   ];
+  const shownQuestions = full ? questions : questions.slice(0, 2);
+  const links = urls.map((u) => u.trim()).filter(Boolean);
   return (
-    <aside aria-label="答える人からの見え方" className="sticky top-6 hidden flex-col gap-2.5 lg:flex">
+    // 全体を出しているときは長くなるので、画面に貼り付けず、ページと一緒に動かす
+    <aside aria-label="答える人からの見え方" className={`${full ? "" : "sticky top-6"} hidden flex-col gap-2.5 lg:flex`}>
       <span className="text-[13px] font-bold text-muted">答える人には、こう見えます</span>
       <div className="flex flex-col items-start gap-2.5 rounded-2xl border border-line bg-card p-[18px] shadow-[0_12px_32px_rgba(28,24,56,0.08)]">
         <span className="text-[11px] text-muted">
@@ -438,20 +448,44 @@ function Preview({
         </span>
         <KindLabel link={{ kind }} />
         <b className={`font-round text-[19px] leading-snug ${title.trim() ? "" : "text-muted"}`}>{title.trim() || "タイトル"}</b>
-        {images[0] && (
+        {(full ? images : images.slice(0, 1)).map((src, i) => (
           // eslint-disable-next-line @next/next/no-img-element -- 端末の中の画像（data URL）なので、Next.js の画像変換は使えない
-          <img src={images[0]} alt="" className="max-h-48 w-full rounded-xl border border-line object-contain" />
-        )}
-        {tagline.trim() && <p className="line-clamp-4 whitespace-pre-wrap text-[13px] leading-relaxed">{tagline.trim()}</p>}
-        {labels.slice(0, 2).map((l) => (
-          <div key={l} className="flex w-full flex-col gap-1.5">
-            <b className="text-[13px]">{l}</b>
-            <div className="h-12 rounded-xl border border-line" />
+          <img key={src.slice(-40) + i} src={src} alt="" className="max-h-48 w-full rounded-xl border border-line object-contain" />
+        ))}
+        {tagline.trim() && <p className={`whitespace-pre-wrap text-[13px] leading-relaxed ${full ? "" : "line-clamp-4"}`}>{tagline.trim()}</p>}
+        {full &&
+          links.map((u) => (
+            <span key={u} className="flex w-full items-center gap-2 rounded-xl border-2 border-coral bg-coral-tint px-3 py-2">
+              <LinkIcon />
+              <span className="flex min-w-0 flex-col">
+                <b className="text-xs">リンク</b>
+                <span className="truncate text-[11px] underline underline-offset-2">{u.replace(/^https?:\/\//, "").replace(/\/$/, "")}</span>
+              </span>
+            </span>
+          ))}
+        {shownQuestions.map((q, i) => (
+          <div key={q.label + i} className="flex w-full flex-col gap-1.5">
+            <b className="text-[13px]">{q.label}</b>
+            {q.choices ? (
+              <div className="flex flex-wrap gap-1.5">
+                {q.choices.map((c) => (
+                  <span key={c} className="rounded-full border border-line px-3 py-1.5 text-xs font-bold">
+                    {c}
+                  </span>
+                ))}
+              </div>
+            ) : (
+              <div className="h-12 rounded-xl border border-line" />
+            )}
           </div>
         ))}
-        {labels.length > 2 && <span className="text-xs text-muted">…ほか {labels.length - 2} 問</span>}
+        {!full && questions.length > 2 && <span className="text-xs text-muted">…ほか {questions.length - 2} 問</span>}
+        {full && <span className="flex min-h-10 w-full items-center justify-center rounded-full bg-coral text-sm font-bold text-night opacity-60">意見を送る</span>}
       </div>
-      <span className="text-center text-xs text-muted">質問は {labels.length} 個。答える人は30秒ほどで答えられます。</span>
+      <button type="button" onClick={() => setFull((v) => !v)} aria-expanded={full} className="min-h-11 self-center rounded-full border border-line bg-card px-5 text-sm font-bold hover:border-coral">
+        {full ? "閉じる" : "全体を見る"}
+      </button>
+      <span className="text-center text-xs text-muted">質問は {questions.length} 個。答える人は30秒ほどで答えられます。</span>
     </aside>
   );
 }

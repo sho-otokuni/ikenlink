@@ -273,7 +273,7 @@ function SettingsCard({ id, initialPublic, initialClosesAt }: { id: string; init
       <h2 className="text-sm font-bold">公開範囲</h2>
       <div role="radiogroup" aria-label="公開範囲" className="flex rounded-full bg-line/60 p-[3px]">
         {[
-          { value: true, label: "公開（だれでも）" },
+          { value: true, label: "公開（誰でも）" },
           { value: false, label: "リンクを知っている人だけ" },
         ].map((o) => (
           <button
@@ -293,7 +293,7 @@ function SettingsCard({ id, initialPublic, initialClosesAt }: { id: string; init
         {isPublic
           ? closed
             ? "締め切ったので、いまは一覧に並んでいません。"
-            : "「意見募集中」の一覧に並んでいます。だれでも答えられます。"
+            : "「意見募集中」の一覧に並んでいます。誰でも答えられます。"
           : "一覧には並びません。リンクを送った相手だけが答えられます。"}
       </p>
 

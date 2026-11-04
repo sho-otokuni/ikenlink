@@ -29,7 +29,7 @@ export type LinkKind = "app" | "idea" | "design" | "text" | "other";
 export type FeedbackLink = {
   id: string;
   kind: LinkKind;
-  /** タイトル（例：週末だけの古本カフェ、どう思う？） */
+  /** タイトル（例：作っている家計簿アプリ、使ってみたい？） */
   title: string;
   /** 説明（どんなものか、何に迷っているか。なくてもよい） */
   tagline: string | null;
