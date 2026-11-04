@@ -3,7 +3,9 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
+import { AccountCard } from "@/components/AccountCard";
 import { AnsweredCard } from "@/components/AnsweredCard";
+import { finishSwitch, getAccount, readLoginError, type Account, type LoginError } from "@/lib/auth";
 import { fetchMyAnswerCount, fetchMyLinks, type MyLink } from "@/lib/links";
 import { isClosed } from "@/lib/questions";
 
@@ -11,15 +13,25 @@ export function MyLinks() {
   const [links, setLinks] = useState<MyLink[] | null>(null);
   const [answered, setAnswered] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [account, setAccount] = useState<Account | null>(null);
+  const [loginError, setLoginError] = useState<LoginError>(null);
+  const [moved, setMoved] = useState(0);
 
   useEffect(() => {
     let alive = true;
-    fetchMyLinks().then((r) => {
+    (async () => {
+      // ログインから戻ってきたときは、失敗の知らせを読み、ログインし直した人にはこの端末の募集を移してから読む
+      const failure = readLoginError();
+      const movedCount = await finishSwitch();
+      const [acc, r, n] = await Promise.all([getAccount(), fetchMyLinks(), fetchMyAnswerCount()]);
       if (!alive) return;
+      setLoginError(failure);
+      setMoved(movedCount);
+      setAccount(acc);
+      setAnswered(n);
       if (r.ok) setLinks(r.data);
       else setError(r.message);
-    });
-    fetchMyAnswerCount().then((n) => alive && setAnswered(n));
+    })();
     return () => {
       alive = false;
     };
@@ -33,6 +45,7 @@ export function MyLinks() {
           ＋ 作る
         </Link>
       </div>
+      {account && <AccountCard account={account} loginError={loginError} moved={moved} />}
       {answered !== null && (
         <AnsweredCard count={answered} title="ほかの募集に答えた数" body="答えるほど、公開中の募集が一覧で前に出やすくなります。">
           <Link href="/list" className="flex min-h-11 items-center text-[13px] font-bold text-coral">
@@ -63,7 +76,9 @@ export function MyLinks() {
         ))}
       </ul>
       <p className="text-xs leading-relaxed text-muted">
-        いまは登録なしで使えます。ここに出るのは、このブラウザで作った募集だけです。ほかの端末やブラウザから意見を見るときは、募集ごとの「自分専用の URL」を使ってください。
+        {account?.state === "member"
+          ? "ログインしたアカウントで作った募集が並びます。"
+          : "登録なしのときは、このブラウザで作った募集だけが並びます。登録しないまま、ほかの端末から意見を見るときは、募集ごとの「自分専用の URL」を使ってください。"}
       </p>
     </div>
   );

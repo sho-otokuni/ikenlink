@@ -9,6 +9,12 @@ const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
 export const isSupabaseConfigured = Boolean(url && anonKey);
 
+/**
+ * ページを開いたときの URL の # 以降。ログインから戻ってきたときの知らせ（失敗など）が入っている。
+ * 下の接続を作ると、Supabase が読んで消してしまうので、その前に取っておく
+ */
+export const initialHash = typeof window !== "undefined" ? window.location.hash : "";
+
 export const supabase = createClient(url ?? "http://localhost", anonKey ?? "missing", {
   auth: {
     // ブラウザではログイン状態を覚える。サーバーでは覚えない（だれのものでもない読み込みだけに使う）
