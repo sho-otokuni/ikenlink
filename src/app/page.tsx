@@ -65,23 +65,44 @@ export default function Home() {
 }
 
 /** 答える画面の見本（パソコンの幅だけ。絵として見せるもので、押せない） */
+// 本物の募集に見えないよう、「使い方の例」と見出しを付け、点線の枠と仮の文字（〇〇さん・画像の枠）で描く
 function Sample() {
   return (
-    <div aria-hidden className="hidden flex-col gap-3 rounded-2xl border border-line bg-card p-5 shadow-[0_12px_32px_rgba(28,24,56,0.08)] lg:flex">
-      <span className="text-xs text-muted">きのとさんが意見を募集しています · 11月11日まで</span>
-      <span className="self-start rounded-full bg-coral-tint px-2.5 py-px text-[11px] font-bold">アイデア</span>
-      <b className="font-round text-[22px]">週末だけの古本カフェ、どう思う？</b>
-      <div className="flex gap-2">
-        <div className="h-[150px] flex-1 rounded-xl bg-grape-tint" />
-        <div className="h-[150px] w-[90px] rounded-xl bg-peach-tint" />
+    <figure className="m-0 hidden flex-col gap-2.5 lg:flex">
+      <figcaption className="flex items-center gap-2 text-[13px] font-bold text-muted">
+        <span className="rounded-full bg-peach px-2.5 py-0.5 text-xs text-night">使い方の例</span>
+        画像を貼ると、答える人にはこう見えます
+      </figcaption>
+      <div aria-hidden className="flex flex-col gap-3 rounded-2xl border-2 border-dashed border-line bg-card/70 p-5">
+        <span className="text-xs text-muted">〇〇さんが意見を募集しています</span>
+        <span className="self-start rounded-full bg-coral-tint px-2.5 py-px text-[11px] font-bold">アイデア</span>
+        <b className="font-round text-[22px] text-muted">（例）お店のロゴ、どっちがいい？</b>
+        <div className="flex gap-2">
+          <ImageSlot label="A 案" />
+          <ImageSlot label="B 案" />
+        </div>
+        <b className="text-sm text-muted">パッと見て、どう思いましたか？</b>
+        <div className="flex min-h-11 items-center rounded-xl border border-line px-3 text-sm text-muted">ここに感想を書いてもらえます</div>
+        <div className="flex gap-2 text-[13px] font-bold text-muted">
+          <span className="flex min-h-10 items-center rounded-full border border-line px-3.5">ほしい</span>
+          <span className="flex min-h-10 items-center rounded-full border border-line px-3.5">たぶん</span>
+          <span className="flex min-h-10 items-center rounded-full border border-line px-3.5">いらないかな</span>
+        </div>
       </div>
-      <b className="text-sm">パッと見て、どう思いましたか？</b>
-      <div className="flex min-h-11 items-center rounded-xl border border-line px-3 text-[15px] text-muted">行ってみたい！雰囲気がよさそう</div>
-      <div className="flex gap-2 text-[13px] font-bold">
-        <span className="flex min-h-10 items-center rounded-full bg-coral px-3.5">ほしい</span>
-        <span className="flex min-h-10 items-center rounded-full border border-line px-3.5">たぶん</span>
-        <span className="flex min-h-10 items-center rounded-full border border-line px-3.5">いらないかな</span>
-      </div>
+    </figure>
+  );
+}
+
+/** 画像が入る場所（線画の山と太陽のマーク） */
+function ImageSlot({ label }: { label: string }) {
+  return (
+    <div className="flex h-[130px] flex-1 flex-col items-center justify-center gap-1 rounded-xl border border-line bg-bg text-xs font-bold text-muted">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+        <rect x="3" y="4" width="18" height="16" rx="3" />
+        <circle cx="9" cy="10" r="1.6" />
+        <path d="M3 17l5-5 4 4 3-3 6 6" />
+      </svg>
+      {label}
     </div>
   );
 }
