@@ -292,7 +292,7 @@ export function NewLinkForm({ editing }: { editing?: EditTarget }) {
           </p>
         )}
         <fieldset disabled={questionsLocked} className={`m-0 border-0 p-0 ${questionsLocked ? "opacity-50" : ""}`}>
-        <div className="flex flex-col gap-2 lg:grid lg:grid-cols-2">
+        <div className="flex flex-col gap-2">
           {TEMPLATE_KINDS.map((t) => {
             const on = kinds.includes(t.kind);
             return (
@@ -306,7 +306,7 @@ export function NewLinkForm({ editing }: { editing?: EditTarget }) {
             );
           })}
           {freeQuestions.map((q, i) => (
-            <div key={i} className="flex items-center gap-2 lg:col-span-2">
+            <div key={i} className="flex items-center gap-2">
               <input
                 value={q}
                 onChange={(e) => setFreeQuestions((list) => list.map((x, k) => (k === i ? e.target.value : x)))}
@@ -338,8 +338,7 @@ export function NewLinkForm({ editing }: { editing?: EditTarget }) {
         </fieldset>
       </Section>
 
-      <div className="flex flex-col gap-5 lg:grid lg:grid-cols-2 lg:gap-6 lg:rounded-2xl lg:border lg:border-line lg:bg-card lg:p-5">
-      <Section title="締め切り" plain>
+      <Section title="締め切り">
         <div role="radiogroup" aria-label="締め切り" className="flex flex-wrap gap-1.5">
           {[...DEADLINES.map((d) => ({ id: d.id, label: d.label })), { id: "date", label: "日付を選ぶ" }].map((d) => (
             <button
@@ -364,8 +363,8 @@ export function NewLinkForm({ editing }: { editing?: EditTarget }) {
         </p>
       </Section>
 
-      <Section title="公開範囲" plain>
-        <div role="radiogroup" aria-label="公開範囲" className="flex flex-col gap-2">
+      <Section title="公開範囲">
+        <div role="radiogroup" aria-label="公開範囲" className="flex flex-col gap-2 lg:grid lg:grid-cols-2">
           <ScopeOption checked={isPublic} onSelect={() => setIsPublic(true)} title="公開する（だれでも答えられる）">
             「意見募集中」の一覧に並び、だれでも答えられます。ほかの意見に答えるほど、前に出やすくなります。
           </ScopeOption>
@@ -375,10 +374,8 @@ export function NewLinkForm({ editing }: { editing?: EditTarget }) {
         </div>
         <p className="text-xs text-muted">あとから変えられます。届いた意見は、どちらでも募集した人だけが読めます。</p>
       </Section>
-      </div>
 
-      <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:gap-4">
-      <div className="lg:flex-1">
+      <div className="flex flex-col lg:rounded-2xl lg:border lg:border-line lg:bg-card lg:p-5">
       <Field
         label="表示する名前"
         required
@@ -393,13 +390,14 @@ export function NewLinkForm({ editing }: { editing?: EditTarget }) {
       </Field>
       </div>
 
-      <div className="flex flex-col gap-1.5 lg:mt-6 lg:w-64">
-        {error && <p role="alert" className="text-sm font-bold text-coral">{error}</p>}
-        <button type="button" onClick={submit} disabled={!canSubmit} className="min-h-12 rounded-full bg-coral px-6 font-bold text-night disabled:opacity-40">
-          {busy ? "保存しています…" : editing ? "変更を保存する" : "募集を始める"}
-        </button>
-        <p className="text-center text-xs text-muted lg:hidden">質問は {questionCount} 個。答える人は30秒ほどで答えられます。</p>
-      </div>
+      <div className="flex flex-col gap-1.5">
+        {error && <p role="alert" className="text-sm font-bold text-coral lg:text-right">{error}</p>}
+        <div className="flex flex-col gap-1.5 lg:flex-row-reverse lg:items-center lg:justify-between lg:gap-4">
+          <button type="button" onClick={submit} disabled={!canSubmit} className="min-h-12 rounded-full bg-coral px-6 font-bold text-night disabled:opacity-40 lg:w-64">
+            {busy ? "保存しています…" : editing ? "変更を保存する" : "募集を始める"}
+          </button>
+          <p className="text-center text-xs text-muted lg:text-left lg:text-[13px]">質問は {questionCount} 個。答える人は30秒ほどで答えられます。</p>
+        </div>
       </div>
     </div>
     <Preview {...preview} />
@@ -460,10 +458,10 @@ function Preview({
 
 const inputClass = "min-h-11 w-full rounded-xl border border-line bg-card px-3 text-base outline-none focus:border-coral";
 
-/** 入力のまとまり。パソコンの幅ではカードにする（plain は、外側がすでにカードのとき） */
-function Section({ title, plain = false, children }: { title: string; plain?: boolean; children: React.ReactNode }) {
+/** 入力のまとまり。パソコンの幅ではカードにする */
+function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <section className={`flex flex-col gap-2.5 ${plain ? "" : "lg:gap-3.5 lg:rounded-2xl lg:border lg:border-line lg:bg-card lg:p-5"}`}>
+    <section className="flex flex-col gap-2.5 lg:gap-3.5 lg:rounded-2xl lg:border lg:border-line lg:bg-card lg:p-5">
       <h2 className="font-round text-base font-bold lg:text-lg">{title}</h2>
       {children}
     </section>
