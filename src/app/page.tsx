@@ -17,14 +17,14 @@ export default function Home() {
     <>
       <Header />
       <main className={`${PAGE_WIDTH} flex flex-1 flex-col gap-[18px] px-3 pb-16 pt-4 lg:gap-10 lg:px-0 lg:pt-14`}>
-        {/* 見出しは、パソコンでもスマホでも「「これ、どう思う？」」と「を気軽に。」の2行。パソコンでは横いっぱいを使う */}
-        <div className="flex flex-col gap-3 lg:grid lg:grid-cols-[1fr_460px] lg:items-center lg:gap-x-14 lg:gap-y-8">
-          <h1 className="font-round text-[28px] font-bold leading-snug lg:col-span-2 lg:text-[56px] lg:leading-tight">
-            「これ、どう思う？」
-            <br />
-            を気軽に。
-          </h1>
+        {/* パソコンでは、左に見出し・説明・ボタン、右に「使い方の例」を並べる */}
+        <div className="flex flex-col gap-[18px] lg:grid lg:grid-cols-[1fr_460px] lg:items-center lg:gap-14">
           <section className="flex flex-col gap-3 lg:gap-5">
+            <h1 className="font-round text-[28px] font-bold leading-snug lg:text-[56px] lg:leading-tight">
+              「これ、どう思う？」
+              <br />
+              を気軽に。
+            </h1>
             <p className="text-sm leading-relaxed text-muted lg:text-[17px] lg:leading-loose">
               思いついたアイデアも、つくりかけのものも。
               <br />
