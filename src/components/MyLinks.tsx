@@ -52,9 +52,17 @@ export function MyLinks() {
       {account && account.state !== "none" && <ProfileCard initialName={account.displayName} />}
       {answered !== null && (
         <AnsweredCard count={answered} title="ほかの意見に答えた数" body="答えるほど、公開中の募集が一覧で前に出やすくなります。">
-          <Link href="/list" className="flex min-h-11 items-center text-[13px] font-bold text-coral">
-            募集に答えに行く ›
-          </Link>
+          <span className="flex flex-wrap gap-x-4">
+            <Link href="/list" className="flex min-h-11 items-center text-[13px] font-bold text-coral">
+              募集に答えに行く ›
+            </Link>
+            {/* 答えた内容を見返せるのは、アカウント登録している人だけ */}
+            {account?.state === "member" && (
+              <Link href="/me/answers" className="flex min-h-11 items-center text-[13px] font-bold text-coral">
+                自分の回答を見る ›
+              </Link>
+            )}
+          </span>
         </AnsweredCard>
       )}
       {error && <p role="alert" className="text-sm font-bold text-coral">{error}</p>}

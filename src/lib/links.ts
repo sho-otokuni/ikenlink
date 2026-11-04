@@ -91,6 +91,42 @@ export async function fetchMyAnswerCount(): Promise<number> {
   return Number(data ?? 0);
 }
 
+/** 自分が答えた意見1件（答えた募集の、タイトルと質問も一緒に） */
+export type MyAnswer = {
+  id: string;
+  answeredAt: string;
+  answers: Answers;
+  link: { id: string; title: string; kind: LinkKind; image: string | null; questions: Question[]; makerName: string };
+};
+
+/** 自分がこれまでに答えた意見（新しい順）。アカウント登録している人だけ（登録なしなら空） */
+export async function fetchMyAnswers(): Promise<Result<MyAnswer[]>> {
+  if (!isSupabaseConfigured) return { ok: false, message: NOT_READY };
+  if (!(await currentUserId())) return { ok: true, data: [] };
+  const { data, error } = await supabase.rpc("my_answers", { p_limit: 200 });
+  if (error) return { ok: false, message: `読み込めませんでした。${NETWORK}` };
+  type Row = {
+    response_id: string;
+    answered_at: string;
+    answers: Answers;
+    link_id: string;
+    title: string;
+    kind: LinkKind;
+    image: string | null;
+    questions: Question[];
+    maker_name: string;
+  };
+  return {
+    ok: true,
+    data: ((data ?? []) as Row[]).map((r) => ({
+      id: r.response_id,
+      answeredAt: r.answered_at,
+      answers: r.answers,
+      link: { id: r.link_id, title: r.title, kind: r.kind, image: r.image, questions: r.questions ?? [], makerName: r.maker_name },
+    })),
+  };
+}
+
 // ============================================================
 // 作る人
 // ============================================================
@@ -100,12 +136,19 @@ export async function fetchMyAnswerCount(): Promise<number> {
  * あとでメールアドレスにつなげられるようにする予定
  */
 async function ensureUser(): Promise<string | null> {
-  const { data } = await supabase.auth.getSession();
-  if (data.session) return data.session.user.id;
-  const { data: signed, error } = await supabase.auth.signInAnonymously();
-  if (error || !signed.user) return null;
-  return signed.user.id;
+  // 画像を何枚も同時に置き始めたときに、利用者を何人も作らないよう、始めている途中ならそれを待つ
+  starting ??= (async () => {
+    const { data } = await supabase.auth.getSession();
+    if (data.session) return data.session.user.id;
+    const { data: signed, error } = await supabase.auth.signInAnonymously();
+    if (error || !signed.user) return null;
+    return signed.user.id;
+  })().finally(() => {
+    starting = null;
+  });
+  return starting;
 }
+let starting: Promise<string | null> | null = null;
 
 async function currentUserId(): Promise<string | null> {
   const { data } = await supabase.auth.getSession();
@@ -130,12 +173,30 @@ async function dataUrlToBlob(dataUrl: string) {
 
 export type LinkDraft = Omit<FeedbackLink, "id"> & { /** 意見募集中の一覧に載せるか */ isPublic: boolean };
 
-/** リンクを作る。画面の写真（data URL）は保存場所に置いて、その URL を残す */
-export async function createLink(draft: LinkDraft): Promise<Result<string>> {
+/** これから作る募集の id。画像を選んだ時点で置き始めるため、作る前に決めておける */
+export function newLinkId() {
+  return newId();
+}
+
+/**
+ * 画像を1枚、保存場所に置いて、その URL を返す（失敗したら null）。
+ * 作る画面では、画像を選んだらすぐ置き始める。保存を押したときに待つ時間を短くするため
+ */
+export async function uploadImage(linkId: string, dataUrl: string): Promise<string | null> {
+  if (!isSupabaseConfigured) return null;
+  const uid = await ensureUser();
+  if (!uid) return null;
+  const path = `${uid}/${linkId}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.jpg`;
+  const { error } = await supabase.storage.from("link-images").upload(path, await dataUrlToBlob(dataUrl), { contentType: "image/jpeg" });
+  return error ? null : supabase.storage.from("link-images").getPublicUrl(path).data.publicUrl;
+}
+
+/** リンクを作る。画面の写真（data URL）は保存場所に置いて、その URL を残す。id は先に決めておいたものを使える */
+export async function createLink(draft: LinkDraft, presetId?: string): Promise<Result<string>> {
   if (!isSupabaseConfigured) return { ok: false, message: NOT_READY };
   const uid = await ensureUser();
   if (!uid) return { ok: false, message: `始められませんでした。${NETWORK}` };
-  const id = newId();
+  const id = presetId ?? newId();
   const images = await uploadImages(uid, id, draft.images);
   if (!images) return { ok: false, message: `写真を保存できませんでした。${NETWORK}` };
   const { error } = await supabase.from("links").insert({
@@ -163,18 +224,9 @@ export async function createLink(draft: LinkDraft): Promise<Result<string>> {
  * 端末の中の画像（data URL）だけを、重ならない名前で新しく置く。1枚でも失敗したら null
  */
 async function uploadImages(uid: string, linkId: string, list: string[]): Promise<string[] | null> {
-  const out: string[] = [];
-  for (const [i, src] of list.entries()) {
-    if (!src.startsWith("data:")) {
-      out.push(src);
-      continue;
-    }
-    const path = `${uid}/${linkId}/${Date.now()}-${i + 1}.jpg`;
-    const { error } = await supabase.storage.from("link-images").upload(path, await dataUrlToBlob(src), { contentType: "image/jpeg" });
-    if (error) return null;
-    out.push(supabase.storage.from("link-images").getPublicUrl(path).data.publicUrl);
-  }
-  return out;
+  // 何枚あっても、同時に置く（1枚ずつ待つと、枚数の分だけ遅くなる）
+  const out = await Promise.all(list.map((src) => (src.startsWith("data:") ? uploadImage(linkId, src) : Promise.resolve(src))));
+  return out.every((u): u is string => u !== null) ? out : null;
 }
 
 /** 保存場所の画像の URL から、保存場所の中の場所（uid/リンク/ファイル名）を取り出す */
@@ -216,8 +268,9 @@ export async function updateLink(
     .select("id");
   if (error || !data?.length) return { ok: false, message: `保存できませんでした。${NETWORK}` };
   // 外した画像は、保存場所からも消す（失敗しても募集の中身には関係ない）
+  // 待たずに次の画面へ進む
   const removed = previousImages.filter((u) => !images.includes(u)).map(storagePath).filter((p): p is string => !!p);
-  if (removed.length) await supabase.storage.from("link-images").remove(removed);
+  if (removed.length) void supabase.storage.from("link-images").remove(removed);
   return { ok: true, data: null };
 }
 

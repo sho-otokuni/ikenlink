@@ -1,13 +1,13 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useState, useSyncExternalStore } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 
 import { CalendarIcon } from "@/components/icons";
 import { KindLabel } from "@/components/KindLabel";
 import { getAccount, setDisplayName } from "@/lib/auth";
 import { shrinkImage } from "@/lib/image";
-import { createLink, updateLink } from "@/lib/links";
+import { createLink, newLinkId, updateLink, uploadImage } from "@/lib/links";
 import { DEADLINES, deadlineAfter, deadlineOn, formatDay, LINK_KINDS, QUESTION_COPY, TEMPLATE_KINDS } from "@/lib/questions";
 import type { FeedbackLink, LinkKind, Question, QuestionKind } from "@/lib/types";
 
@@ -68,6 +68,10 @@ export function NewLinkForm({ editing }: { editing?: EditTarget }) {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const today = useToday();
+  // 画像は選んだらすぐ保存場所に置き始める（保存を押したときに待たないように）。
+  // そのため、募集の id は最初の画像を選んだときに決めておく（直すときは、その募集の id）
+  const linkId = useRef<string | null>(editing?.link.id ?? null);
+  const uploads = useRef(new Map<string, Promise<string | null>>());
 
   // プロフィールの名前を、表示する名前の欄に入れておく（もう何か書いてあれば上書きしない）
   useEffect(() => {
@@ -97,6 +101,8 @@ export function NewLinkForm({ editing }: { editing?: EditTarget }) {
     const room = MAX_IMAGES - images.length;
     const picked = Array.from(files).filter((f) => f.type.startsWith("image/")).slice(0, room);
     const shrunk = await Promise.all(picked.map((f) => shrinkImage(f)));
+    linkId.current ??= newLinkId();
+    for (const src of shrunk) uploads.current.set(src, uploadImage(linkId.current, src));
     setImages((list) => [...list, ...shrunk].slice(0, MAX_IMAGES));
   }
 
@@ -119,12 +125,21 @@ export function NewLinkForm({ editing }: { editing?: EditTarget }) {
         .filter(Boolean)
         .map((text, i) => ({ id: `f${i + 1}`, kind: "free" as const, text })),
     ];
+    // 置き始めておいた画像を待つ（まだ置いていないものは、ここで置く）
+    const id = (linkId.current ??= newLinkId());
+    const placed = await Promise.all(images.map((src) => (src.startsWith("data:") ? (uploads.current.get(src) ?? uploadImage(id, src)) : Promise.resolve(src))));
+    if (placed.some((u) => u === null)) {
+      // うまく置けなかった画像は、次に保存を押したときに置き直す
+      images.forEach((src) => uploads.current.delete(src));
+      setBusy(false);
+      return setError("画像を保存できませんでした。通信環境を確かめて、もう一度お試しください");
+    }
     const draft = {
       kind,
       title: title.trim(),
       tagline: tagline.trim() || null,
       urls: cleanUrls,
-      images,
+      images: placed as string[],
       makerName: makerName.trim(),
       closesAt: closesAt?.toISOString() ?? null,
       isPublic,
@@ -139,13 +154,13 @@ export function NewLinkForm({ editing }: { editing?: EditTarget }) {
       router.push(`/me/${editing.link.id}?saved=1`);
       return;
     }
-    const r = await createLink({ ...draft, questions: questions ?? [] });
+    const r = await createLink({ ...draft, questions: questions ?? [] }, id);
     if (!r.ok) {
       setBusy(false);
       return setError(r.message);
     }
     // プロフィールに名前がまだなければ、いま使った名前を保存しておく（次からは自動で入る）。失敗しても募集はできている
-    if (!profileName) await setDisplayName(makerName);
+    if (!profileName) void setDisplayName(makerName);
     router.push(`/me/${r.data}?created=1`);
   }
 
