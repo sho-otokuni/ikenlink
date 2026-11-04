@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useState } from "react";
 
 import { AnsweredCard } from "@/components/AnsweredCard";
+import { LinkIcon } from "@/components/icons";
 import { Header } from "@/components/Header";
 import { KindLabel } from "@/components/KindLabel";
 import { markAnswered } from "@/lib/answered";
@@ -82,7 +83,7 @@ function About({ link }: { link: FeedbackLink }) {
     <section className="flex flex-col items-start gap-2">
       <p className="text-xs text-muted">
         {link.makerName}さんが意見を募集しています
-        {link.closesAt ? ` · ${formatDay(link.closesAt).replace(/（.）/, "")}まで` : ""} · 登録なし・30秒
+        {link.closesAt ? ` · ${formatDay(link.closesAt).replace(/（.）/, "")}まで` : ""}
       </p>
       <KindLabel link={link} />
       <h1 className="font-round text-[22px] font-bold leading-snug">{link.title}</h1>
@@ -103,9 +104,15 @@ function About({ link }: { link: FeedbackLink }) {
           href={link.url}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex min-h-11 items-center rounded-full border border-line bg-card px-4 text-sm font-bold"
+          className="flex min-h-12 w-full items-center gap-2.5 rounded-xl border-2 border-coral bg-coral-tint px-3 py-2"
         >
-          実際に見てみる ↗
+          <LinkIcon />
+          <span className="flex min-w-0 flex-1 flex-col">
+            <span className="text-sm font-bold">{link.kind === "app" ? "サービスのリンク" : "参考のリンク"}</span>
+            {/* どこへ飛ぶのか分かるよう、URL もそのまま見せる */}
+            <span className="truncate text-xs underline underline-offset-2">{link.url.replace(/^https?:\/\//, "").replace(/\/$/, "")}</span>
+          </span>
+          <span aria-hidden className="text-base font-bold">↗</span>
         </a>
       )}
     </section>

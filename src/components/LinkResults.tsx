@@ -11,9 +11,6 @@ import { deleteLink, fetchResults, fetchResultsByToken, setLinkDeadline, setLink
 import { DEADLINES, deadlineAfter, deadlineOn, formatDay, isClosed, QUESTION_COPY, remaining } from "@/lib/questions";
 import type { FeedbackLink, Question } from "@/lib/types";
 
-/** AI のまとめを出せるようになる、意見の数 */
-const SUMMARY_MIN = 5;
-
 /**
  * 届いた意見を見る画面。作った端末なら自分のものとして、自分専用の URL（token あり）なら合言葉で読む
  */
@@ -91,14 +88,6 @@ export function LinkResults({ id, created, token }: { id: string; created: boole
         <p className="text-sm text-muted">{deadlineText(link.closesAt)}</p>
       )}
 
-      <section className="flex flex-col gap-1.5 rounded-2xl bg-peach-tint p-3">
-        <h2 className="text-sm font-bold">AI のまとめ</h2>
-        <p className="text-xs leading-relaxed">
-          {count >= SUMMARY_MIN
-            ? "多かった声・よかった点・直すと良さそうな順にまとめます（準備中）。"
-            : `意見が${SUMMARY_MIN}件たまると、AI がまとめます。あと${SUMMARY_MIN - count}件です。`}
-        </p>
-      </section>
 
       {count > 0 ? (
         link.questions.map((q) => <QuestionResult key={q.id} question={q} responses={responses} />)
