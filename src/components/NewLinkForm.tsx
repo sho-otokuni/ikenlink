@@ -50,6 +50,8 @@ export function NewLinkForm({ editing }: { editing?: EditTarget }) {
   const [kind, setKind] = useState<LinkKind>(start?.kind ?? "app");
   const [title, setTitle] = useState(start?.title ?? "");
   const [images, setImages] = useState<string[]>(start?.images ?? []);
+  // 画像それぞれのタイトル（images と同じ並び。なくてもよい）
+  const [captions, setCaptions] = useState<string[]>(start?.imageCaptions ?? []);
   const [tagline, setTagline] = useState(start?.tagline ?? "");
   const [urls, setUrls] = useState<string[]>(start?.urls.length ? start.urls : [""]);
   const [kinds, setKinds] = useState<QuestionKind[]>(
@@ -105,6 +107,7 @@ export function NewLinkForm({ editing }: { editing?: EditTarget }) {
     linkId.current ??= newLinkId();
     for (const src of shrunk) uploads.current.set(src, uploadImage(linkId.current, src));
     setImages((list) => [...list, ...shrunk].slice(0, MAX_IMAGES));
+    setCaptions((list) => [...list, ...shrunk.map(() => "")].slice(0, MAX_IMAGES));
   }
 
   function toggleKind(k: QuestionKind) {
@@ -155,6 +158,7 @@ export function NewLinkForm({ editing }: { editing?: EditTarget }) {
       tagline: tagline.trim() || null,
       urls: cleanUrls,
       images: placed as string[],
+      imageCaptions: captions,
       makerName: makerName.trim(),
       closesAt: closesAt?.toISOString() ?? null,
       isPublic,
@@ -180,7 +184,7 @@ export function NewLinkForm({ editing }: { editing?: EditTarget }) {
     router.push(`/me/${r.data}?created=1`);
   }
 
-  const preview = { kind, title, images, tagline, urls, makerName, closesAt, kinds, freeQuestions };
+  const preview = { kind, title, images, captions, tagline, urls, makerName, closesAt, kinds, freeQuestions };
 
   return (
     <div className="mt-3 lg:mt-4 lg:grid lg:grid-cols-[1fr_400px] lg:items-start lg:gap-8 xl:grid-cols-[1fr_460px]">
@@ -204,19 +208,33 @@ export function NewLinkForm({ editing }: { editing?: EditTarget }) {
           <input value={title} onChange={(e) => setTitle(e.target.value)} maxLength={40} placeholder="例：作っている家計簿アプリ、使ってみたい？" aria-label="タイトル" className={inputClass} />
         </Field>
         <Field label={`画像（${images.length}/${MAX_IMAGES}）`} note="スクショ、手書きのメモ、ラフでも OK">
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap items-start gap-2">
             {images.map((src, i) => (
-              <div key={src.slice(-40) + i} className="relative h-24 w-24 overflow-hidden rounded-lg border border-line bg-card">
-                {/* eslint-disable-next-line @next/next/no-img-element -- 端末の中の画像（data URL）なので、Next.js の画像変換は使えない */}
-                <img src={src} alt={`画像 ${i + 1}`} className="h-full w-full object-cover" />
-                <button
-                  type="button"
-                  onClick={() => setImages((list) => list.filter((_, k) => k !== i))}
-                  aria-label={`画像 ${i + 1} を外す`}
-                  className="absolute right-0 top-0 flex h-11 w-11 items-start justify-end p-1"
-                >
-                  <span className="flex h-6 w-6 items-center justify-center rounded-full bg-night/70 text-sm text-white">×</span>
-                </button>
+              // 画像の下に、タイトル（任意）を書ける。「これはこの画面です」と説明するため
+              <div key={src.slice(-40) + i} className="flex w-36 flex-col gap-1 lg:w-44">
+                <div className="relative h-24 w-full overflow-hidden rounded-lg border border-line bg-card lg:h-28">
+                  {/* eslint-disable-next-line @next/next/no-img-element -- 端末の中の画像（data URL）なので、Next.js の画像変換は使えない */}
+                  <img src={src} alt={captions[i] || `画像 ${i + 1}`} className="h-full w-full object-cover" />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setImages((list) => list.filter((_, k) => k !== i));
+                      setCaptions((list) => list.filter((_, k) => k !== i));
+                    }}
+                    aria-label={`画像 ${i + 1} を外す`}
+                    className="absolute right-0 top-0 flex h-11 w-11 items-start justify-end p-1"
+                  >
+                    <span className="flex h-6 w-6 items-center justify-center rounded-full bg-night/70 text-sm text-white">×</span>
+                  </button>
+                </div>
+                <input
+                  value={captions[i] ?? ""}
+                  onChange={(e) => setCaptions((list) => images.map((_, k) => (k === i ? e.target.value : (list[k] ?? ""))))}
+                  maxLength={40}
+                  placeholder="タイトル（任意）"
+                  aria-label={`画像 ${i + 1} のタイトル`}
+                  className="min-h-11 w-full rounded-lg border border-line bg-card px-2 text-sm outline-none focus:border-coral"
+                />
               </div>
             ))}
             {images.length < MAX_IMAGES && (

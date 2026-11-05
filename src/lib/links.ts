@@ -32,13 +32,14 @@ type LinkRow = {
   url: string | null;
   urls?: string[] | null;
   images: string[];
+  image_captions?: string[] | null;
   questions: Question[];
   maker_name: string;
   created_at: string;
   is_public?: boolean;
 };
 
-const LINK_COLUMNS = "id, kind, title, tagline, url, urls, images, questions, maker_name, created_at, closes_at, is_public";
+const LINK_COLUMNS = "id, kind, title, tagline, url, urls, images, image_captions, questions, maker_name, created_at, closes_at, is_public";
 
 function toLink(row: LinkRow): FeedbackLink {
   return {
@@ -49,6 +50,8 @@ function toLink(row: LinkRow): FeedbackLink {
     // 前の版で作った募集は、url（1つ）だけを持っている
     urls: row.urls?.length ? row.urls : row.url ? [row.url] : [],
     images: row.images ?? [],
+    // images と同じ数にそろえる（タイトルを付けられるようになる前の募集は、空のまま）
+    imageCaptions: (row.images ?? []).map((_, i) => row.image_captions?.[i] ?? ""),
     questions: row.questions ?? [],
     makerName: row.maker_name,
     closesAt: row.closes_at ?? null,
@@ -221,6 +224,7 @@ export async function createLink(draft: LinkDraft, presetId?: string): Promise<R
     url: draft.urls[0] ?? null,
     urls: draft.urls,
     images,
+    image_captions: captionsFor(images, draft.imageCaptions),
     questions: draft.questions,
     maker_name: draft.makerName,
     closes_at: draft.closesAt,
@@ -241,6 +245,11 @@ async function uploadImages(uid: string, linkId: string, list: string[]): Promis
   // 何枚あっても、同時に置く（1枚ずつ待つと、枚数の分だけ遅くなる）
   const out = await Promise.all(list.map((src) => (src.startsWith("data:") ? uploadImage(linkId, src) : Promise.resolve(src))));
   return out.every((u): u is string => u !== null) ? out : null;
+}
+
+/** 画像のタイトルを、画像と同じ数にそろえ、前後の空白を取る */
+function captionsFor(images: string[], captions: string[]) {
+  return images.map((_, i) => (captions[i] ?? "").trim().slice(0, 40));
 }
 
 /** 保存場所の画像の URL から、保存場所の中の場所（uid/リンク/ファイル名）を取り出す */
@@ -273,6 +282,7 @@ export async function updateLink(
       url: draft.urls[0] ?? null,
       urls: draft.urls,
       images,
+      image_captions: captionsFor(images, draft.imageCaptions),
       ...(draft.questions ? { questions: draft.questions } : {}),
       maker_name: draft.makerName,
       closes_at: draft.closesAt,

@@ -37,6 +37,8 @@ export type FeedbackLink = {
   urls: string[];
   /** 画像（4枚まで。なくてもよい） */
   images: string[];
+  /** 画像それぞれのタイトル（images と同じ並び。なければ空の文字） */
+  imageCaptions: string[];
   questions: Question[];
   /** 募集した人の表示名 */
   makerName: string;

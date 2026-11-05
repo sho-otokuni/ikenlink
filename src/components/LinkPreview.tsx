@@ -22,6 +22,7 @@ export function LinkPreview({
   kind,
   title,
   images,
+  captions = [],
   tagline,
   urls,
   makerName,
@@ -34,6 +35,8 @@ export function LinkPreview({
   kind: LinkKind;
   title: string;
   images: string[];
+  /** 画像それぞれのタイトル（images と同じ並び） */
+  captions?: string[];
   tagline: string;
   urls: string[];
   makerName: string;
@@ -58,8 +61,11 @@ export function LinkPreview({
         <KindLabel link={{ kind }} />
         <b className={`font-round text-[19px] leading-snug ${title.trim() ? "" : "text-muted"}`}>{title.trim() || "タイトル"}</b>
         {(full ? images : images.slice(0, 1)).map((src, i) => (
-          // eslint-disable-next-line @next/next/no-img-element -- 作る画面では端末の中の画像（data URL）なので、Next.js の画像変換は使えない
-          <img key={src.slice(-40) + i} src={src} alt="" className="max-h-48 w-full rounded-lg border border-line object-contain" />
+          <figure key={src.slice(-40) + i} className="flex w-full flex-col gap-1">
+            {/* eslint-disable-next-line @next/next/no-img-element -- 作る画面では端末の中の画像（data URL）なので、Next.js の画像変換は使えない */}
+            <img src={src} alt={captions[i]?.trim() || ""} className="max-h-48 w-full rounded-lg border border-line object-contain" />
+            {captions[i]?.trim() && <figcaption className="text-center text-xs text-muted">{captions[i].trim()}</figcaption>}
+          </figure>
         ))}
         {tagline.trim() && <p className={`whitespace-pre-wrap text-[13px] leading-relaxed ${full ? "" : "line-clamp-4"}`}>{tagline.trim()}</p>}
         {full &&

@@ -150,6 +150,7 @@ function LinkSummary({ link }: { link: FeedbackLink }) {
       kind={link.kind}
       title={link.title}
       images={link.images}
+      captions={link.imageCaptions}
       tagline={link.tagline ?? ""}
       urls={link.urls}
       makerName={link.makerName}
