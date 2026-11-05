@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
@@ -48,11 +49,11 @@ export function MyLinks() {
           ＋ 作る
         </Link>
       </div>
-      {account && <AccountCard account={account} loginError={loginError} moved={moved} />}
+      {account && <AccountCard account={account} loginError={loginError} moved={moved} compact />}
       {/* まだ何も使っていない人は、名前を残す先（利用者）がないので、初めて募集したときに保存する */}
       {account && account.state !== "none" && <ProfileCard initialName={account.displayName} />}
       {answered !== null && (
-        <AnsweredCard count={answered} title="ほかの意見に答えた数" body="3件以上答えると、公開中の募集のカードに「よく答えている人」の印が付きます。">
+        <AnsweredCard count={answered} title="回答した数" body="3件以上答えると、公開中の募集のカードに「よく答えている人」の印が付きます。">
           <span className="flex flex-wrap gap-x-4">
             <Link href="/list" className="flex min-h-11 items-center text-[13px] font-bold text-coral">
               募集に答えに行く ›
@@ -72,9 +73,17 @@ export function MyLinks() {
       <ul className="flex flex-col gap-2">
         {links?.map((l) => (
           <li key={l.id}>
-            <Link href={`/me/${l.id}`} className="flex min-h-14 items-center gap-3 rounded-lg border border-line bg-card px-3 py-2.5 hover:border-coral">
-              <span className="flex flex-1 flex-col gap-0.5">
-                <span className="font-bold">{l.title}</span>
+            <Link href={`/me/${l.id}`} className="flex min-h-14 items-center gap-3 rounded-lg border border-line bg-card p-2 pr-3 hover:border-coral">
+              {/* 1枚目の画像（なければタイトルの1文字目）。みんなの募集のカードと同じ形 */}
+              <span className="relative flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-grape-tint">
+                {l.images[0] ? (
+                  <Image src={l.images[0]} alt="" fill sizes="56px" className="object-cover" />
+                ) : (
+                  <span className="font-round text-xl font-bold text-muted">{l.title.slice(0, 1)}</span>
+                )}
+              </span>
+              <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+                <span className="truncate font-bold">{l.title}</span>
                 <span className="text-xs text-muted">
                   {isClosed(l.closesAt) ? "締め切り" : l.isPublic ? "公開" : "リンクを知っている人だけ"}
                   {l.lastResponseAt ? ` · 最後の意見 ${new Date(l.lastResponseAt).toLocaleDateString("ja-JP")}` : ""}

@@ -7,7 +7,7 @@ import { useEffect, useMemo, useState } from "react";
 import { SearchIcon } from "@/components/icons";
 import { KindLabel } from "@/components/KindLabel";
 import { answeredIds } from "@/lib/answered";
-import { fetchPublicLinks, type PublicLink } from "@/lib/links";
+import { fetchMyAnswerCount, fetchPublicLinks, type PublicLink } from "@/lib/links";
 import { LINK_KINDS, remaining } from "@/lib/questions";
 import type { LinkKind } from "@/lib/types";
 
@@ -17,6 +17,34 @@ const SORTS: { id: Sort; label: string }[] = [
   { id: "many", label: "意見が多い順" },
   { id: "few", label: "意見が少ない順" },
 ];
+
+/**
+ * 自分が回答した数と、自分の回答を見る入口。
+ * スマホでは見出しのすぐ下に1行で、パソコンでは左の列に小さなカードで出す
+ */
+function AnswerSummary() {
+  const [count, setCount] = useState<number | null>(null);
+  useEffect(() => {
+    let alive = true;
+    fetchMyAnswerCount().then((n) => alive && setCount(n));
+    return () => {
+      alive = false;
+    };
+  }, []);
+  return (
+    <div className="flex min-h-11 items-center justify-between gap-3 rounded-lg border border-line bg-card px-3 py-1.5 lg:flex-col lg:items-start lg:gap-1 lg:py-3">
+      <span className="flex items-baseline gap-1.5 text-xs text-muted">
+        回答した数
+        <b className="font-round text-lg leading-none tabular-nums text-ink lg:text-2xl">{count ?? "–"}</b>
+        件
+      </span>
+      {/* 登録なしの人は、開いた先で登録をすすめる（自分の回答を見返せるのは、登録している人だけ） */}
+      <Link href="/me/answers" className="flex min-h-11 items-center text-xs font-bold text-coral lg:min-h-9 lg:text-[13px]">
+        自分の回答を見る ›
+      </Link>
+    </div>
+  );
+}
 
 /** 「よく答えている人」の印を付ける、ほかの募集に答えた数 */
 const ACTIVE_ANSWERER = 3;
@@ -69,6 +97,7 @@ export function PublicList() {
     <div className="flex flex-col gap-2.5 lg:grid lg:grid-cols-[240px_1fr] lg:items-start lg:gap-6">
       <aside className="contents lg:flex lg:flex-col lg:gap-4">
         <h1 className="font-round text-[22px] font-bold lg:text-[28px]">みんなの募集</h1>
+        <AnswerSummary />
         <div role="tablist" aria-label="種類" className="order-2 -mx-3 flex gap-1.5 overflow-x-auto px-3 lg:order-none lg:mx-0 lg:flex-col lg:gap-1 lg:overflow-visible lg:px-0">
           <span className="hidden text-xs font-bold text-muted lg:block">種類</span>
           {[{ kind: "all" as const, label: "すべて" }, ...LINK_KINDS].map((k) => (

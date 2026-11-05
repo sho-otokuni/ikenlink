@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { AuthLinks } from "@/components/AuthLinks";
 import { Header, PAGE_WIDTH } from "@/components/Header";
 import { RecentLinks } from "@/components/RecentLinks";
 
@@ -32,6 +33,7 @@ export default function Home() {
                 みんなの募集に答える
               </Link>
             </div>
+            <AuthLinks />
           </section>
           <Sample />
         </div>
@@ -44,14 +46,10 @@ export default function Home() {
 }
 
 /** 答える画面の見本（パソコンの幅だけ。絵として見せるもので、押せない） */
-// 本物の募集に見えないよう、「使い方の例」と見出しを付け、点線の枠と仮の文字（〇〇さん・画像の枠）で描く
+// 本物の募集に見えないよう、点線の枠と仮の文字（〇〇さん・画像の枠・（例））で描く
 function Sample() {
   return (
     <figure className="m-0 hidden flex-col gap-2.5 lg:flex">
-      <figcaption className="flex items-center gap-2 text-[13px] font-bold text-muted">
-        <span className="rounded-full bg-peach px-2.5 py-0.5 text-xs text-night">使い方の例</span>
-        募集をすると、答える人にはこう見えます
-      </figcaption>
       <div aria-hidden className="flex flex-col gap-3 rounded-lg border-2 border-dashed border-line bg-card/70 p-4">
         <span className="text-xs text-muted">〇〇さんが意見を募集しています</span>
         <span className="self-start rounded-full bg-coral-tint px-2.5 py-px text-[11px] font-bold">アイデア</span>

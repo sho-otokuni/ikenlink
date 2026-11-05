@@ -11,11 +11,13 @@ const supabaseHost = process.env.NEXT_PUBLIC_SUPABASE_URL ? new URL(process.env.
  */
 const csp = [
   "default-src 'self'",
-  "script-src 'self' 'unsafe-inline'",
-  "style-src 'self' 'unsafe-inline'",
-  `img-src 'self' data: blob: https://${supabaseHost} https://picsum.photos https://fastly.picsum.photos`,
+  // Google の公式のログインボタン（accounts.google.com/gsi）を読み込めるようにする
+  "script-src 'self' 'unsafe-inline' https://accounts.google.com/gsi/client",
+  "style-src 'self' 'unsafe-inline' https://accounts.google.com/gsi/style",
+  "frame-src https://accounts.google.com/gsi/",
+  `img-src 'self' data: blob: https://${supabaseHost} https://picsum.photos https://fastly.picsum.photos https://lh3.googleusercontent.com`,
   "font-src 'self'",
-  `connect-src 'self' https://${supabaseHost}`,
+  `connect-src 'self' https://${supabaseHost} https://accounts.google.com/gsi/`,
   "frame-ancestors 'none'",
   "object-src 'none'",
   "base-uri 'self'",

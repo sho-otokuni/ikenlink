@@ -103,6 +103,43 @@ export async function switchTo(provider: LoginProvider): Promise<string | null> 
 }
 
 /**
+ * Google の公式のボタンで受け取った証明（ID トークン）でログインする。
+ * 登録なしで使っているなら、いまの利用者に Google をつなぐ（作った募集も答えた数もそのまま）。
+ * その Google のアカウントが別の端末ですでに登録済みなら "already" を返す（ログインし直すか選んでもらう）
+ */
+export async function continueWithGoogle(token: string, nonce: string): Promise<"ok" | "already" | string> {
+  const account = await getAccount();
+  if (account.state === "guest") {
+    const { error } = await supabase.auth.linkIdentity({ provider: "google", token, nonce });
+    if (!error) return "ok";
+    if (error.code === "identity_already_exists") return "already";
+    return "ログインできませんでした。もう一度お試しください";
+  }
+  const { error } = await supabase.auth.signInWithIdToken({ provider: "google", token, nonce });
+  return error ? "ログインできませんでした。もう一度お試しください" : "ok";
+}
+
+/**
+ * すでに登録済みの Google のアカウントへログインし直す（公式のボタンから）。
+ * この端末で登録なしのまま作った募集は、合言葉をもらっておき、ログインのあとで移す
+ */
+export async function switchToGoogle(token: string, nonce: string): Promise<string | null> {
+  const account = await getAccount();
+  if (account.state === "guest") {
+    const { data: transfer } = await supabase.rpc("create_transfer");
+    if (typeof transfer === "string") {
+      try {
+        window.localStorage.setItem(TRANSFER_KEY, transfer);
+      } catch {
+        // 覚えておけなくても、ログイン自体はできる（この端末の募集は移らない）
+      }
+    }
+  }
+  const { error } = await supabase.auth.signInWithIdToken({ provider: "google", token, nonce });
+  return error ? "ログインできませんでした。もう一度お試しください" : null;
+}
+
+/**
  * 移した結果。画面がすぐに読み直しても（開発中の二重の呼び出しなど）同じ数を出せるよう、少しの間だけ覚えておく。
  * あとで別の画面から戻ってきたときは、もう合言葉がないので 0 になる
  */

@@ -29,8 +29,9 @@ export function Header({ current, answerer = false }: { current?: "/list" | "/me
               key={n.href}
               href={n.href}
               aria-current={current === n.href ? "page" : undefined}
-              className={`flex min-h-11 items-center rounded-lg px-2.5 text-[13px] font-bold hover:bg-line lg:px-3.5 lg:text-sm ${
-                current === n.href ? "text-ink shadow-[inset_0_-2px_0_var(--coral)]" : "text-muted hover:text-ink"
+              className={`relative flex min-h-11 items-center rounded-lg px-2.5 text-[13px] font-bold hover:bg-line lg:px-3.5 lg:text-sm ${
+                // 今いる画面は、文字の下にまっすぐなコーラルの線を引く（角の丸みに沿わせない）
+                current === n.href ? "text-ink after:absolute after:inset-x-2.5 after:bottom-0 after:h-0.5 after:bg-coral lg:after:inset-x-3.5" : "text-muted hover:text-ink"
               }`}
             >
               {n.label}

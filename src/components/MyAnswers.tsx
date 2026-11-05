@@ -36,12 +36,12 @@ export function MyAnswers() {
   if (account.state !== "member") {
     return (
       <div className="flex flex-col items-start gap-3 rounded-lg border border-line bg-card p-4">
-        <b className="text-sm">アカウントを登録すると、答えた意見を見返せます</b>
+        <b className="text-sm">回答履歴の閲覧には、アカウント登録が必要です</b>
         <p className="text-xs leading-relaxed text-muted">
-          このブラウザで登録すると、これまで答えた意見も、これから答える意見も、ここで見返せるようになります。
+          このブラウザでアカウントを登録すると、これまでの回答とこれからの回答を、このページで確認できます。
         </p>
-        <Link href="/me" className="flex min-h-11 items-center rounded-lg bg-coral px-5 text-sm font-bold text-night">
-          自分のリンクで登録する
+        <Link href="/signup" className="flex min-h-11 items-center rounded-lg bg-coral px-5 text-sm font-bold text-night">
+          アカウントを登録する
         </Link>
       </div>
     );
@@ -50,9 +50,9 @@ export function MyAnswers() {
   if (answers.length === 0) {
     return (
       <div className="flex flex-col items-start gap-3">
-        <p className="text-sm text-muted">まだ答えた意見はありません。</p>
+        <p className="text-sm text-muted">回答履歴はありません。</p>
         <Link href="/list" className="flex min-h-11 items-center text-sm font-bold text-coral">
-          募集に答えに行く ›
+          みんなの募集を見る ›
         </Link>
       </div>
     );

@@ -1,18 +1,27 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 
-import { continueWith, LOGIN_PROVIDERS, signOut, switchTo, type Account, type LoginError } from "@/lib/auth";
+import { GoogleButton } from "@/components/GoogleButton";
+import { continueWith, continueWithGoogle, LOGIN_PROVIDERS, signOut, switchTo, switchToGoogle, type Account, type LoginError } from "@/lib/auth";
 
 /**
- * 自分のリンクの画面の「アカウント」。
- * 登録なしで使っている人には登録をすすめ、登録済みの人にはログイン中のアカウントとログアウトを出す
+ * 「アカウント」のカード。
+ * 登録済みの人にはログイン中のアカウントとログアウトを出す。
+ * 登録なしで使っている人には、自分のリンクの画面（compact）では登録の画面への入口を、登録の画面ではログインのボタンを出す
  */
 export function AccountCard({
   account,
   loginError,
   moved,
+  compact = false,
+  mode = "signup",
 }: {
+  /** signup＝登録の画面（いまの利用者にアカウントをつなぐ）／login＝ログインの画面（登録済みのアカウントに入る） */
+  mode?: "signup" | "login";
+  /** 自分のリンクの画面で使う：ボタンを並べず、登録の画面への入口だけを出す */
+  compact?: boolean;
   account: Account;
   /** ログインから戻ってきたときの失敗（already＝そのアカウントは別の端末ですでに登録済み） */
   loginError: LoginError;
@@ -21,6 +30,36 @@ export function AccountCard({
 }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Google の公式のボタンで登録しようとしたら、そのアカウントはもう登録済みだった（画面移動がないので、ここで覚える）
+  const [googleAlready, setGoogleAlready] = useState(false);
+  const already: LoginError = googleAlready ? { kind: "already", provider: "google" } : loginError;
+
+  /** Google の公式のボタンで続ける。うまくいったら、画面を読み直して自分のリンクを出し直す */
+  async function google(token: string, nonce: string) {
+    setBusy(true);
+    setError(null);
+    const r = await continueWithGoogle(token, nonce);
+    // うまくいったら、自分のリンクの画面で出し直す
+    // ログインの状態が変わったので、画面を丸ごと読み直す（前の画面の中身を残さない）
+    // eslint-disable-next-line @next/next/no-location-assign-relative-destination
+    if (r === "ok") return window.location.assign("/me");
+    setBusy(false);
+    if (r === "already") setGoogleAlready(true);
+    else setError(r);
+  }
+
+  /** 登録済みの Google のアカウントへログインし直す（この端末の募集は、読み直したあとに移す） */
+  async function googleSwitch(token: string, nonce: string) {
+    setBusy(true);
+    setError(null);
+    const message = await switchToGoogle(token, nonce);
+    // この端末の募集は、自分のリンクの画面を開いたときに移す
+    // ログインの状態が変わったので、画面を丸ごと読み直す（前の画面の中身を残さない）
+    // eslint-disable-next-line @next/next/no-location-assign-relative-destination
+    if (!message) return window.location.assign("/me");
+    setBusy(false);
+    setError(message);
+  }
 
   async function run(action: () => Promise<string | null>) {
     setBusy(true);
@@ -58,46 +97,106 @@ export function AccountCard({
     );
   }
 
-  if (loginError?.kind === "already") {
-    const label = LOGIN_PROVIDERS.find((p) => p.id === loginError.provider)?.label;
+  if (already?.kind === "already") {
+    const label = LOGIN_PROVIDERS.find((p) => p.id === already.provider)?.label;
+    const switchButton = (
+      <button type="button" disabled={busy} onClick={() => run(() => switchTo(already.provider))} className="min-h-11 rounded-lg bg-coral px-4 text-sm font-bold text-night disabled:opacity-50">
+        {label} でログインして引き継ぐ
+      </button>
+    );
     return (
       <section className="flex flex-col gap-2 rounded-lg border-2 border-peach bg-card p-3">
-        <b className="text-sm">その {label} のアカウントは、もう登録されています</b>
+        <b className="text-sm">この {label} アカウントは登録済みです</b>
         <p className="text-xs leading-relaxed">
-          ほかの端末で登録したアカウントです。ログインすると、この端末で登録なしのまま作った募集も、そのアカウントに移します。
+          他の端末で登録されたアカウントです。ログインすると、このブラウザで投稿した募集もそのアカウントに引き継がれます。
         </p>
-        <button type="button" disabled={busy} onClick={() => run(() => switchTo(loginError.provider))} className="min-h-11 rounded-lg bg-coral px-4 text-sm font-bold text-night disabled:opacity-50">
-          {label} でログインして、募集を移す
-        </button>
+        {already.provider === "google" ? <GoogleButton onToken={googleSwitch} fallback={switchButton} disabled={busy} /> : switchButton}
         {error && <p role="alert" className="text-sm font-bold text-coral">{error}</p>}
       </section>
     );
   }
 
-  // 自分のリンクの中で、ここだけは「アカウントを作る」案内なので、コーラルの枠と印でほかのカードと分ける
+  // 自分のリンクの画面では、登録の画面への入口だけ（コーラルの枠で、ほかのカードと分ける）
+  if (compact) {
+    return (
+      <div className="flex flex-col gap-1.5">
+        {account.state === "guest" && (
+          <Link href="/signup" className="flex min-h-12 items-center justify-between gap-3 rounded-lg border-2 border-coral bg-card px-4 py-2">
+            <b className="text-sm">アカウント登録</b>
+            <span aria-hidden className="text-base font-bold text-coral">›</span>
+          </Link>
+        )}
+        {/* 登録済みのアカウントを持っている人の入口 */}
+        <Link href="/login" className="flex min-h-11 items-center justify-between gap-3 rounded-lg border border-line bg-card px-4 py-2">
+          <span className="text-sm">
+            {account.state === "guest" ? "アカウントをお持ちの方は" : ""}
+            <b>ログイン</b>
+          </span>
+          <span aria-hidden className="text-base font-bold text-muted">›</span>
+        </Link>
+        {loginError?.kind === "failed" && <p role="alert" className="text-xs font-bold text-coral">ログインできませんでした。もう一度お試しください。</p>}
+      </div>
+    );
+  }
+
+  // ログインの画面：登録済みのアカウントに入る。この端末で登録せずに投稿した募集は、ログインしたあとにそのアカウントへ移す
+  if (mode === "login") {
+    return (
+      <section className="flex flex-col gap-2 rounded-lg border border-line bg-card p-3 lg:p-4">
+        <p className="text-xs leading-relaxed text-muted">
+          {account.state === "guest"
+            ? "登録済みのアカウントでログインします。このブラウザで投稿した募集と回答数は、ログインしたアカウントに引き継がれます。"
+            : "登録済みのアカウントでログインします。"}
+        </p>
+        <div className="flex flex-col gap-2 sm:flex-row">
+          {LOGIN_PROVIDERS.map((p) => {
+            const button = (
+              <button
+                key={p.id}
+                type="button"
+                disabled={busy}
+                onClick={() => run(() => (account.state === "guest" ? switchTo(p.id) : continueWith(p.id)))}
+                className="min-h-11 flex-1 rounded-lg border border-line bg-card px-4 text-sm font-bold hover:border-coral disabled:opacity-50"
+              >
+                {p.label} でログイン
+              </button>
+            );
+            return p.id === "google" ? <GoogleButton key={p.id} onToken={googleSwitch} fallback={button} disabled={busy} /> : button;
+          })}
+        </div>
+        {error && <p role="alert" className="text-sm font-bold text-coral">{error}</p>}
+      </section>
+    );
+  }
+
+  // 登録の画面：ここだけは「アカウントを作る」案内なので、コーラルの枠と印でほかのカードと分ける
   return (
     <section className="flex flex-col gap-2 rounded-lg border-2 border-coral bg-card p-3 lg:p-4">
       <span className="self-start rounded-full bg-coral px-2.5 py-0.5 text-[11px] font-bold text-night">
         {account.state === "guest" ? "アカウント登録（無料）" : "ログイン"}
       </span>
-      <b className="font-round text-base lg:text-lg">{account.state === "guest" ? "集まった意見を、スマホでもパソコンでも。" : "前に作ったアカウントで続ける"}</b>
+      <b className="font-round text-base lg:text-lg">{account.state === "guest" ? "集まった意見を、スマホでもパソコンでも。" : "登録済みのアカウントでログイン"}</b>
       <p className="text-xs leading-relaxed text-muted">
         {account.state === "guest"
-          ? "いまは登録なしで使っています。作った募集はこのブラウザにだけ残ります。アカウントを作ると、ほかのスマホやパソコンからもログインして見られます。いまの募集も答えた数も、そのまま引き継ぎます。"
-          : "前に作ったアカウントがあれば、ログインすると自分のリンクが見られます。登録しなくても、募集は作れます。"}
+          ? "現在は登録せずにご利用中です。投稿した募集は、このブラウザにのみ保存されています。アカウントを登録すると、他の端末からもログインして確認できます。現在の募集と回答数は、そのまま引き継がれます。"
+          : "登録済みのアカウントでログインすると、自分のリンクを確認できます。"}
       </p>
       <div className="flex flex-col gap-2 sm:flex-row">
-        {LOGIN_PROVIDERS.map((p) => (
-          <button
-            key={p.id}
-            type="button"
-            disabled={busy}
-            onClick={() => run(() => continueWith(p.id))}
-            className="min-h-11 flex-1 rounded-lg border border-line bg-card px-4 text-sm font-bold hover:border-coral disabled:opacity-50"
-          >
-            {p.label} で続ける
-          </button>
-        ))}
+        {LOGIN_PROVIDERS.map((p) => {
+          const button = (
+            <button
+              key={p.id}
+              type="button"
+              disabled={busy}
+              onClick={() => run(() => continueWith(p.id))}
+              className="min-h-11 flex-1 rounded-lg border border-line bg-card px-4 text-sm font-bold hover:border-coral disabled:opacity-50"
+            >
+              {p.label} で続ける
+            </button>
+          );
+          // Google は公式のボタンにする（Google の画面に、意見リンクの住所が出る）。使えないときは、これまでのボタン
+          return p.id === "google" ? <GoogleButton key={p.id} onToken={google} fallback={button} disabled={busy} /> : button;
+        })}
       </div>
       {loginError?.kind === "failed" && <p role="alert" className="text-sm font-bold text-coral">ログインできませんでした。もう一度お試しください。</p>}
       {error && <p role="alert" className="text-sm font-bold text-coral">{error}</p>}
