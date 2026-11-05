@@ -28,7 +28,7 @@ export function EditLink({ id }: { id: string }) {
   }, [id]);
 
   if (error) return <p role="alert" className="mt-4 text-sm font-bold text-coral">{error}</p>;
-  if (target === undefined) return <div className="mt-4 h-40 rounded-2xl bg-line" aria-busy />;
+  if (target === undefined) return <div className="mt-4 h-40 rounded-lg bg-line" aria-busy />;
   if (target === null) {
     return (
       <div className="mt-4 flex flex-col items-start gap-3">

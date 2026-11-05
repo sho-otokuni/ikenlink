@@ -37,7 +37,7 @@ function Loading() {
       <div className="h-4 w-24 rounded-full bg-line" />
       <div className="mt-4 h-8 w-4/5 rounded-lg bg-line" />
       <div className="h-8 w-3/5 rounded-lg bg-line" />
-      <div className="mt-6 h-12 w-full rounded-full bg-line" />
+      <div className="mt-6 h-12 w-full rounded-lg bg-line" />
     </main>
   );
 }

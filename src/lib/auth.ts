@@ -18,7 +18,7 @@ export const LOGIN_PROVIDERS: { id: LoginProvider; label: string }[] = [
 
 /**
  * none＝まだ何も使っていない／guest＝登録なしで使っている／member＝登録済み。
- * displayName はプロフィールの「表示する名前」（募集を作るときに自動で入る）。
+ * displayName はプロフィールの「表示名」（募集を作るときに自動で入る）。
  * who はログイン中のアカウントの見分け（メールアドレスか @ユーザー名）、providers はログインに使える方法
  */
 export type Account =
@@ -52,7 +52,7 @@ export async function getAccount(): Promise<Account> {
   };
 }
 
-/** プロフィールの「表示する名前」を変える（登録なしの人も、このブラウザの利用者として残る） */
+/** プロフィールの「表示名」を変える（登録なしの人も、このブラウザの利用者として残る） */
 export async function setDisplayName(name: string): Promise<string | null> {
   const { error } = await supabase.auth.updateUser({ data: { display_name: name.trim().slice(0, 20) } });
   return error ? "保存できませんでした。通信環境を確かめて、もう一度お試しください" : null;

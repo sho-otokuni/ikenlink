@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import { LinkCard } from "@/components/PublicList";
 import { fetchPublicLinks, type PublicLink } from "@/lib/links";
 
-/** はじめの画面（パソコンの幅だけ）の「いま意見を募集中」。新しい順に4つ（広い画面では5つ） */
+/** はじめの画面（パソコンの幅だけ）の「みんなの募集」。新しい順に4つ（広い画面では5つ） */
 export function RecentLinks() {
   const [links, setLinks] = useState<PublicLink[] | null>(null);
 
@@ -22,7 +22,7 @@ export function RecentLinks() {
   return (
     <section className="hidden flex-col gap-3.5 lg:flex">
       <div className="flex items-end justify-between">
-        <h2 className="font-round text-[22px] font-bold">いま意見を募集中</h2>
+        <h2 className="font-round text-[22px] font-bold">みんなの募集</h2>
         <Link href="/list" className="flex min-h-11 items-center text-sm font-bold text-coral">
           すべて見る ›
         </Link>

@@ -10,7 +10,7 @@ export default function MyLinksPage() {
   return (
     <>
       <Header current="/me" />
-      <main className="mx-auto w-full max-w-2xl flex-1 px-3 pb-16 pt-3">
+      <main className="mx-auto w-full max-w-2xl flex-1 px-3 pb-12 pt-3">
         <MyLinks />
       </main>
     </>

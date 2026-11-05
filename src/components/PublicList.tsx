@@ -21,7 +21,7 @@ const SORTS: { id: Sort; label: string }[] = [
 /** 「よく答えている人」の印を付ける、ほかの募集に答えた数 */
 const ACTIVE_ANSWERER = 3;
 
-/** 意見募集中の一覧。キーワードと種類で絞り込み、まだ答えていないものを先に並べる */
+/** みんなの募集の一覧。キーワードと種類で絞り込み、まだ答えていないものを先に並べる */
 export function PublicList() {
   const [links, setLinks] = useState<PublicLink[] | null>(null);
   const [answered, setAnswered] = useState<string[]>([]);
@@ -66,14 +66,9 @@ export function PublicList() {
   // スマホでは上から「見出し・検索・種類・並べ替え・一覧」と1列に、パソコンでは左の列に見出しと種類、右に検索と一覧を置く。
   // スマホでは左右の入れ物（contents）を消して、order で並びを決める
   return (
-    <div className="flex flex-col gap-2.5 lg:grid lg:grid-cols-[240px_1fr] lg:items-start lg:gap-8">
-      <aside className="contents lg:flex lg:flex-col lg:gap-5">
-        <div className="flex flex-col gap-1 lg:gap-1.5">
-          <h1 className="font-round text-[22px] font-bold lg:text-[28px]">意見募集中</h1>
-          <p className="text-xs leading-relaxed text-muted lg:text-[13px]">
-            公開されている募集です。どれも登録なし、30秒ほどで答えられます。
-          </p>
-        </div>
+    <div className="flex flex-col gap-2.5 lg:grid lg:grid-cols-[240px_1fr] lg:items-start lg:gap-6">
+      <aside className="contents lg:flex lg:flex-col lg:gap-4">
+        <h1 className="font-round text-[22px] font-bold lg:text-[28px]">みんなの募集</h1>
         <div role="tablist" aria-label="種類" className="order-2 -mx-3 flex gap-1.5 overflow-x-auto px-3 lg:order-none lg:mx-0 lg:flex-col lg:gap-1 lg:overflow-visible lg:px-0">
           <span className="hidden text-xs font-bold text-muted lg:block">種類</span>
           {[{ kind: "all" as const, label: "すべて" }, ...LINK_KINDS].map((k) => (
@@ -91,16 +86,11 @@ export function PublicList() {
             </button>
           ))}
         </div>
-        <Link href="/new" className="hidden flex-col gap-2 rounded-2xl border border-peach bg-peach-tint p-3.5 lg:flex">
-          <b className="text-sm">自分も意見を募集する</b>
-          <span className="text-xs leading-relaxed">画像1枚からでも、意見を集められます。</span>
-          <span className="flex min-h-10 items-center justify-center rounded-full bg-coral text-sm font-bold text-night">＋ 募集する</span>
-        </Link>
       </aside>
 
       <section className="contents lg:flex lg:flex-col lg:gap-4">
         <div className="contents lg:flex lg:items-center lg:gap-3">
-          <label role="search" className="order-1 flex min-h-11 items-center gap-2 rounded-full border border-line bg-card px-3 text-muted focus-within:border-coral lg:order-none lg:min-h-12 lg:flex-1 lg:px-4">
+          <label role="search" className="order-1 flex min-h-11 items-center gap-2 rounded-lg border border-line bg-card px-3 text-muted focus-within:border-coral lg:order-none lg:min-h-12 lg:flex-1 lg:px-4">
             <SearchIcon />
             <input
               type="search"
@@ -128,7 +118,7 @@ export function PublicList() {
         </div>
 
         <div className="order-4 flex flex-col gap-2 lg:order-none">
-          {!links && <div className="h-40 rounded-2xl bg-line" aria-busy />}
+          {!links && <div className="h-40 rounded-lg bg-line" aria-busy />}
           {links?.length === 0 && <p className="text-sm text-muted">いまは意見を募集しているものがありません。</p>}
           {links && links.length > 0 && shown.length === 0 && <p className="text-sm text-muted">見つかりませんでした。ことばや種類を変えてみてください。</p>}
           {/* パソコンでは画面の幅に合わせて 3〜5 列 */}
@@ -139,7 +129,7 @@ export function PublicList() {
               </li>
             ))}
           </ul>
-          <Link href="/new" className="flex min-h-11 items-center justify-center rounded-full border border-dashed border-line text-[13px] font-bold lg:hidden">
+          <Link href="/new" className="flex min-h-11 items-center justify-center rounded-lg border border-dashed border-line text-[13px] font-bold lg:hidden">
             ＋ 自分も意見を募集する
           </Link>
         </div>
@@ -154,9 +144,9 @@ export function LinkCard({ link: l, done }: { link: PublicLink; done: boolean })
   return (
     <Link
       href={`/l/${l.id}`}
-      className={`flex w-full items-center gap-2.5 rounded-2xl border border-line p-2 hover:border-coral lg:flex-col lg:items-stretch lg:gap-0 lg:overflow-hidden lg:p-0 ${done ? "bg-bg opacity-70" : "bg-card"}`}
+      className={`flex w-full items-center gap-2.5 rounded-lg border border-line p-2 hover:border-coral lg:flex-col lg:items-stretch lg:gap-0 lg:overflow-hidden lg:p-0 ${done ? "bg-bg opacity-70" : "bg-card"}`}
     >
-      <span className="relative flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-grape-tint lg:h-[150px] lg:w-full lg:rounded-none">
+      <span className="relative flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-grape-tint lg:h-[150px] lg:w-full lg:rounded-none">
         {l.image ? (
           <Image src={l.image} alt="" fill sizes="(min-width: 1024px) 360px, 64px" className="object-cover" />
         ) : (
@@ -168,7 +158,7 @@ export function LinkCard({ link: l, done }: { link: PublicLink; done: boolean })
         <span className="flex flex-1 flex-col items-start gap-1 lg:gap-1.5">
           <span className="flex flex-wrap gap-1">
             <KindLabel link={l} small />
-            {l.ownerAnswered >= ACTIVE_ANSWERER && <span className="rounded-full bg-leaf-tint px-2 py-px text-[10px] font-bold text-leaf-dark">よく答えている人</span>}
+            {l.ownerAnswered >= ACTIVE_ANSWERER && <span className="rounded-lg bg-leaf-tint px-2 py-px text-[10px] font-bold text-leaf-dark">よく答えている人</span>}
           </span>
           <span className="text-sm font-bold leading-snug lg:text-[15px]">{l.title}</span>
           <span className="text-[11px] text-muted lg:text-xs">

@@ -3,7 +3,7 @@ import Link from "next/link";
 import { LogoMark } from "@/components/Logo";
 
 const NAV = [
-  { href: "/list", label: "意見募集中" },
+  { href: "/list", label: "みんなの募集" },
   { href: "/me", label: "自分のリンク" },
 ] as const;
 
@@ -29,7 +29,7 @@ export function Header({ current, answerer = false }: { current?: "/list" | "/me
               key={n.href}
               href={n.href}
               aria-current={current === n.href ? "page" : undefined}
-              className={`flex min-h-11 items-center px-2.5 text-[13px] font-bold lg:px-3.5 lg:text-sm ${
+              className={`flex min-h-11 items-center rounded-lg px-2.5 text-[13px] font-bold hover:bg-line lg:px-3.5 lg:text-sm ${
                 current === n.href ? "text-ink shadow-[inset_0_-2px_0_var(--coral)]" : "text-muted hover:text-ink"
               }`}
             >
@@ -37,7 +37,7 @@ export function Header({ current, answerer = false }: { current?: "/list" | "/me
             </Link>
           ))}
           {!answerer && (
-            <Link href="/new" className="ml-2 hidden min-h-11 items-center rounded-full bg-coral px-5 text-sm font-bold text-night lg:flex">
+            <Link href="/new" className="ml-2 hidden min-h-11 items-center rounded-lg bg-coral px-5 text-sm font-bold text-night lg:flex">
               ＋ 意見を募集する
             </Link>
           )}

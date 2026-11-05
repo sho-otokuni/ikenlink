@@ -41,8 +41,8 @@ export function AccountCard({
 
   if (account.state === "member") {
     return (
-      <section className="flex flex-col gap-1.5 rounded-2xl border border-line bg-card p-3">
-        {moved > 0 && <p className="rounded-xl bg-leaf-tint px-3 py-2 text-sm font-bold">この端末で作った募集を {moved} 件、アカウントに移しました。</p>}
+      <section className="flex flex-col gap-1.5 rounded-lg border border-line bg-card p-3">
+        {moved > 0 && <p className="rounded-lg bg-leaf-tint px-3 py-2 text-sm font-bold">この端末で作った募集を {moved} 件、アカウントに移しました。</p>}
         <div className="flex items-center gap-3">
           <span className="flex min-w-0 flex-1 flex-col">
             <span className="text-xs text-muted">ログイン中</span>
@@ -50,7 +50,7 @@ export function AccountCard({
             {/* どの方法で入っても同じアカウントだと分かるように */}
             <span className="text-xs text-muted">ログインに使える方法：{account.providers.join("・")}</span>
           </span>
-          <button type="button" onClick={logout} className="min-h-11 shrink-0 rounded-full border border-line px-4 text-xs font-bold">
+          <button type="button" onClick={logout} className="min-h-11 shrink-0 rounded-lg border border-line px-4 text-xs font-bold">
             ログアウト
           </button>
         </div>
@@ -61,12 +61,12 @@ export function AccountCard({
   if (loginError?.kind === "already") {
     const label = LOGIN_PROVIDERS.find((p) => p.id === loginError.provider)?.label;
     return (
-      <section className="flex flex-col gap-2 rounded-2xl border-2 border-peach bg-peach-tint p-3">
+      <section className="flex flex-col gap-2 rounded-lg border-2 border-peach bg-card p-3">
         <b className="text-sm">その {label} のアカウントは、もう登録されています</b>
         <p className="text-xs leading-relaxed">
           ほかの端末で登録したアカウントです。ログインすると、この端末で登録なしのまま作った募集も、そのアカウントに移します。
         </p>
-        <button type="button" disabled={busy} onClick={() => run(() => switchTo(loginError.provider))} className="min-h-11 rounded-full bg-coral px-4 text-sm font-bold text-night disabled:opacity-50">
+        <button type="button" disabled={busy} onClick={() => run(() => switchTo(loginError.provider))} className="min-h-11 rounded-lg bg-coral px-4 text-sm font-bold text-night disabled:opacity-50">
           {label} でログインして、募集を移す
         </button>
         {error && <p role="alert" className="text-sm font-bold text-coral">{error}</p>}
@@ -74,9 +74,13 @@ export function AccountCard({
     );
   }
 
+  // 自分のリンクの中で、ここだけは「アカウントを作る」案内なので、コーラルの枠と印でほかのカードと分ける
   return (
-    <section className="flex flex-col gap-2 rounded-2xl border border-line bg-card p-3">
-      <b className="text-sm">{account.state === "guest" ? "集まった意見を、スマホでもパソコンでも。" : "ログイン"}</b>
+    <section className="flex flex-col gap-2 rounded-lg border-2 border-coral bg-card p-3 lg:p-4">
+      <span className="self-start rounded-full bg-coral px-2.5 py-0.5 text-[11px] font-bold text-night">
+        {account.state === "guest" ? "アカウント登録（無料）" : "ログイン"}
+      </span>
+      <b className="font-round text-base lg:text-lg">{account.state === "guest" ? "集まった意見を、スマホでもパソコンでも。" : "前に作ったアカウントで続ける"}</b>
       <p className="text-xs leading-relaxed text-muted">
         {account.state === "guest"
           ? "いまは登録なしで使っています。作った募集はこのブラウザにだけ残ります。アカウントを作ると、ほかのスマホやパソコンからもログインして見られます。いまの募集も答えた数も、そのまま引き継ぎます。"
@@ -89,7 +93,7 @@ export function AccountCard({
             type="button"
             disabled={busy}
             onClick={() => run(() => continueWith(p.id))}
-            className="min-h-11 flex-1 rounded-full border border-line bg-card px-4 text-sm font-bold hover:border-coral disabled:opacity-50"
+            className="min-h-11 flex-1 rounded-lg border border-line bg-card px-4 text-sm font-bold hover:border-coral disabled:opacity-50"
           >
             {p.label} で続ける
           </button>

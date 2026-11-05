@@ -43,7 +43,8 @@ export function MyLinks() {
     <div className="flex flex-col gap-3">
       <div className="flex items-center justify-between gap-3">
         <h1 className="font-round text-2xl font-bold">自分のリンク</h1>
-        <Link href="/new" className="flex min-h-11 items-center rounded-full bg-coral px-4 text-[13px] font-bold text-night">
+        {/* パソコンでは上の帯に「意見を募集する」があるので、スマホのときだけ出す */}
+        <Link href="/new" className="flex min-h-11 items-center rounded-lg bg-coral px-4 text-[13px] font-bold text-night lg:hidden">
           ＋ 作る
         </Link>
       </div>
@@ -66,12 +67,12 @@ export function MyLinks() {
         </AnsweredCard>
       )}
       {error && <p role="alert" className="text-sm font-bold text-coral">{error}</p>}
-      {!links && !error && <div className="h-16 rounded-2xl bg-line" aria-busy />}
+      {!links && !error && <div className="h-16 rounded-lg bg-line" aria-busy />}
       {links?.length === 0 && <p className="text-sm text-muted">まだ募集はありません。画像1枚からでも、意見を集められます。</p>}
       <ul className="flex flex-col gap-2">
         {links?.map((l) => (
           <li key={l.id}>
-            <Link href={`/me/${l.id}`} className="flex min-h-14 items-center gap-3 rounded-2xl border border-line bg-card px-3 py-2.5 hover:border-coral">
+            <Link href={`/me/${l.id}`} className="flex min-h-14 items-center gap-3 rounded-lg border border-line bg-card px-3 py-2.5 hover:border-coral">
               <span className="flex flex-1 flex-col gap-0.5">
                 <span className="font-bold">{l.title}</span>
                 <span className="text-xs text-muted">
@@ -79,9 +80,9 @@ export function MyLinks() {
                   {l.lastResponseAt ? ` · 最後の意見 ${new Date(l.lastResponseAt).toLocaleDateString("ja-JP")}` : ""}
                 </span>
               </span>
-              <span className="flex flex-col items-end">
-                <span className="font-round text-2xl font-bold tabular-nums">{l.responseCount}</span>
-                <span className="text-[11px] text-muted">件の意見</span>
+              <span className="flex shrink-0 items-baseline gap-1 whitespace-nowrap">
+                <span className="font-round text-2xl font-bold leading-none tabular-nums">{l.responseCount}</span>
+                <span className="text-xs text-muted">件の意見</span>
               </span>
             </Link>
           </li>
@@ -90,7 +91,13 @@ export function MyLinks() {
       <p className="text-xs leading-relaxed text-muted">
         {account?.state === "member"
           ? "ログインしたアカウントで作った募集が並びます。"
-          : "登録なしのときは、このブラウザで作った募集だけが並びます。登録しないまま、ほかの端末から意見を見るときは、募集ごとの「自分専用の URL」を使ってください。"}
+          : (
+              <>
+                アカウント登録していない場合、このブラウザで作成した募集だけが並びます。
+                <br />
+                アカウント登録しないまま意見を見るときは、募集ごとの「自分専用のURL」をご利用ください。
+              </>
+            )}
       </p>
       {/* いちばん下に、目立たないように置く */}
       {account && <DeleteAccount account={account} />}

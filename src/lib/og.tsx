@@ -7,12 +7,12 @@ import { ImageResponse } from "next/og";
 export const OG_SIZE = { width: 1200, height: 630 };
 
 const C = {
-  bg: "#FFF9F5",
-  ink: "#1C1838",
-  muted: "#5E5C66",
+  bg: "#FAFAFA",
+  ink: "#111111",
+  muted: "#666666",
   coral: "#EE6F55",
   peach: "#FFB067",
-  line: "#E6E3DD",
+  line: "#E5E5E5",
 };
 
 async function loadFont(family: string, weight: number, text: string): Promise<ArrayBuffer | null> {
@@ -134,8 +134,8 @@ function Bubbles() {
   const bubble = (left: number, top: number, w: number, h: number, bg: string, tail: "left" | "right") => (
     <div style={{ position: "absolute", left, top, display: "flex" }}>
       <div style={{ width: w, height: h, borderRadius: 40, background: bg, display: "flex", alignItems: "center", padding: "0 32px", gap: 14 }}>
-        <div style={{ width: w * 0.42, height: 14, borderRadius: 999, background: "rgba(28,24,56,0.18)" }} />
-        <div style={{ width: w * 0.2, height: 14, borderRadius: 999, background: "rgba(28,24,56,0.12)" }} />
+        <div style={{ width: w * 0.42, height: 14, borderRadius: 999, background: "rgba(0,0,0,0.18)" }} />
+        <div style={{ width: w * 0.2, height: 14, borderRadius: 999, background: "rgba(0,0,0,0.12)" }} />
       </div>
       <div
         style={{

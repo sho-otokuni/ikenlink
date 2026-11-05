@@ -31,16 +31,16 @@ export function MyAnswers() {
   }, []);
 
   if (error) return <p role="alert" className="text-sm font-bold text-coral">{error}</p>;
-  if (!account || !answers) return <div className="h-40 rounded-2xl bg-line" aria-busy />;
+  if (!account || !answers) return <div className="h-40 rounded-lg bg-line" aria-busy />;
 
   if (account.state !== "member") {
     return (
-      <div className="flex flex-col items-start gap-3 rounded-2xl border border-line bg-card p-4">
+      <div className="flex flex-col items-start gap-3 rounded-lg border border-line bg-card p-4">
         <b className="text-sm">アカウントを登録すると、答えた意見を見返せます</b>
         <p className="text-xs leading-relaxed text-muted">
           このブラウザで登録すると、これまで答えた意見も、これから答える意見も、ここで見返せるようになります。
         </p>
-        <Link href="/me" className="flex min-h-11 items-center rounded-full bg-coral px-5 text-sm font-bold text-night">
+        <Link href="/me" className="flex min-h-11 items-center rounded-lg bg-coral px-5 text-sm font-bold text-night">
           自分のリンクで登録する
         </Link>
       </div>
@@ -61,9 +61,9 @@ export function MyAnswers() {
   return (
     <ul className="flex flex-col gap-3 lg:grid lg:grid-cols-2 lg:gap-4">
       {answers.map((a) => (
-        <li key={a.id} className="flex flex-col gap-2.5 rounded-2xl border border-line bg-card p-3">
+        <li key={a.id} className="flex flex-col gap-2.5 rounded-lg border border-line bg-card p-3">
           <div className="flex items-center gap-2.5">
-            <span className="relative flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-grape-tint">
+            <span className="relative flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-grape-tint">
               {a.link.image ? (
                 <Image src={a.link.image} alt="" fill sizes="48px" className="object-cover" />
               ) : (

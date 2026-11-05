@@ -7,6 +7,7 @@ import { useEffect, useState, useSyncExternalStore } from "react";
 
 import { CalendarIcon } from "@/components/icons";
 import { KindLabel } from "@/components/KindLabel";
+import { LinkPreview, toPreviewQuestions } from "@/components/LinkPreview";
 import { getAccount } from "@/lib/auth";
 import { deleteLink, fetchResults, fetchResultsByToken, setLinkDeadline, setLinkPublic, type Response, type Results } from "@/lib/links";
 import { DEADLINES, deadlineAfter, deadlineOn, formatDay, isClosed, QUESTION_COPY, remaining } from "@/lib/questions";
@@ -34,7 +35,7 @@ export function LinkResults({ id, created, saved = false, token }: { id: string;
   }, [id, token]);
 
   if (error) return <p role="alert" className="text-sm font-bold text-coral">{error}</p>;
-  if (data === undefined) return <div className="h-40 rounded-2xl bg-line" aria-busy />;
+  if (data === undefined) return <div className="h-40 rounded-lg bg-line" aria-busy />;
   if (data === null) {
     return (
       <div className="flex flex-col items-start gap-4">
@@ -59,11 +60,11 @@ export function LinkResults({ id, created, saved = false, token }: { id: string;
   }
 
   return (
-    <div className="flex flex-col gap-3.5 lg:gap-6">
+    <div className="flex flex-col gap-3 lg:gap-4">
       {(created || saved) && <p className="self-start rounded-full bg-leaf-tint px-3 py-1 text-sm font-bold">{created ? "募集を始めました！" : "変更を保存しました"}</p>}
       <div className="flex items-center gap-2.5 lg:gap-4">
         {link.images[0] && (
-          <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-xl border border-line lg:h-[72px] lg:w-[72px]">
+          <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-lg border border-line lg:h-[72px] lg:w-[72px]">
             <Image src={link.images[0]} alt="" fill sizes="72px" className="object-cover" />
           </div>
         )}
@@ -73,32 +74,32 @@ export function LinkResults({ id, created, saved = false, token }: { id: string;
         </div>
         {/* 直せるのは、作った端末（またはアカウント）で開いたときだけ */}
         {!token && (
-          <Link href={`/me/${link.id}/edit`} className="flex min-h-11 shrink-0 items-center rounded-full border border-line bg-card px-3.5 text-xs font-bold hover:border-coral">
+          <Link href={`/me/${link.id}/edit`} className="flex min-h-11 shrink-0 items-center rounded-lg border border-line bg-card px-3.5 text-xs font-bold hover:border-coral">
             編集する
           </Link>
         )}
-        <span className="flex flex-col items-end">
+        <span className="flex items-baseline gap-1 whitespace-nowrap">
           <span className="font-round text-[26px] font-bold leading-none tabular-nums lg:text-[40px]">{count}</span>
-          <span className="text-[11px] text-muted lg:text-[13px]">件の意見</span>
+          <span className="text-xs text-muted lg:text-sm">件の意見</span>
         </span>
       </div>
 
       {token && (
-        <p className="rounded-xl bg-leaf-tint px-3 py-2 text-sm leading-relaxed">自分専用の URL で開いています。この URL は、ほかの人に見せないでください。</p>
+        <p className="rounded-lg bg-leaf-tint px-3 py-2 text-sm leading-relaxed">自分専用の URL で開いています。この URL は、ほかの人に見せないでください。</p>
       )}
 
       {/*
         パソコンでは、左に届いた意見、右の列に「送る・設定・自分専用の URL」を置く。
         スマホでは右の列の入れ物（contents）を消して、order で「送る → 設定 → 意見 → 自分専用の URL」の順に並べる
       */}
-      <div className="flex flex-col gap-3.5 lg:grid lg:grid-cols-[1fr_360px] lg:items-start lg:gap-8 xl:grid-cols-[1fr_400px]">
-        <div className="order-3 flex flex-col gap-3.5 lg:order-none lg:col-start-1 lg:row-start-1 lg:gap-5">
+      <div className="flex flex-col gap-3.5 lg:grid lg:grid-cols-[1fr_360px] lg:items-start lg:gap-6 xl:grid-cols-[1fr_400px]">
+        <div className="order-3 flex flex-col gap-3.5 lg:order-none lg:col-start-1 lg:row-start-1 lg:gap-3">
           {count > 0 ? (
             link.questions.map((q) => <QuestionResult key={q.id} question={q} responses={responses} />)
           ) : (
-            <section className="flex flex-col gap-1 lg:items-start lg:gap-2 lg:rounded-2xl lg:border lg:border-dashed lg:border-line lg:p-8">
+            <section className="flex flex-col gap-1 lg:items-start lg:gap-2 lg:rounded-lg lg:border lg:border-dashed lg:border-line lg:p-5">
               <b className="text-sm lg:font-round lg:text-lg">まだ意見は届いていません</b>
-              <p className="text-sm leading-relaxed text-muted">リンクを X や友だちに送ってみましょう。届いた意見は、ここに質問ごとに並びます。</p>
+              <p className="text-sm leading-relaxed text-muted">リンクを X や友だちに送ってみましょう。</p>
               <Link href={`/l/${link.id}`} className="flex min-h-11 items-center text-xs font-bold text-coral lg:text-sm">
                 答える画面を見てみる ›
               </Link>
@@ -108,7 +109,7 @@ export function LinkResults({ id, created, saved = false, token }: { id: string;
           <LinkSummary link={link} />
         </div>
 
-        <aside className="contents lg:col-start-2 lg:row-start-1 lg:flex lg:flex-col lg:gap-4">
+        <aside className="contents lg:col-start-2 lg:row-start-1 lg:flex lg:flex-col lg:gap-3">
           <div className="order-1 lg:order-none">
             <ShareCard link={link} highlight={created || count === 0} />
           </div>
@@ -142,47 +143,20 @@ export function LinkResults({ id, created, saved = false, token }: { id: string;
   );
 }
 
-/** 募集の中身：画像・説明・リンク・聞いていること */
+/** 募集の中身を、答える人に見える形（プレビュー）で出す */
 function LinkSummary({ link }: { link: FeedbackLink }) {
   return (
-    <details className="group rounded-2xl border border-line bg-card p-3 lg:p-5" open>
-      <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between text-sm font-bold lg:text-base">
-        募集の中身
-        <span className="text-xs font-normal text-muted group-open:hidden">ひらく</span>
-        <span className="hidden text-xs font-normal text-muted group-open:inline">とじる</span>
-      </summary>
-      <div className="flex flex-col gap-3 pt-1">
-        {link.images.length > 0 && (
-          <div className="flex gap-2 overflow-x-auto">
-            {link.images.map((src, i) => (
-              <a key={src} href={src} target="_blank" rel="noopener noreferrer" className="relative h-28 w-28 shrink-0 overflow-hidden rounded-xl border border-line">
-                <Image src={src} alt={`画像 ${i + 1}`} fill sizes="112px" className="object-cover" />
-              </a>
-            ))}
-          </div>
-        )}
-        {link.tagline && <p className="whitespace-pre-wrap text-sm leading-relaxed">{link.tagline}</p>}
-        {link.urls.length > 0 && (
-          <ul className="flex flex-col gap-1">
-            {link.urls.map((u) => (
-              <li key={u} className="truncate text-xs">
-                <a href={u} target="_blank" rel="noopener noreferrer" className="underline underline-offset-2">
-                  {u.replace(/^https?:\/\//, "").replace(/\/$/, "")}
-                </a>
-              </li>
-            ))}
-          </ul>
-        )}
-        <div className="flex flex-col gap-1">
-          <span className="text-xs font-bold text-muted">聞いていること</span>
-          <ol className="flex list-decimal flex-col gap-0.5 pl-5 text-sm">
-            {link.questions.map((q) => (
-              <li key={q.id}>{q.kind === "free" ? q.text : QUESTION_COPY[q.kind].label}</li>
-            ))}
-          </ol>
-        </div>
-      </div>
-    </details>
+    <LinkPreview
+      kind={link.kind}
+      title={link.title}
+      images={link.images}
+      tagline={link.tagline ?? ""}
+      urls={link.urls}
+      makerName={link.makerName}
+      closesAt={link.closesAt ? new Date(link.closesAt) : null}
+      questions={toPreviewQuestions(link.questions)}
+      startFull
+    />
   );
 }
 
@@ -221,17 +195,17 @@ function ShareCard({ link, highlight }: { link: FeedbackLink; highlight: boolean
   }
 
   return (
-    <section className={`flex flex-col gap-2 rounded-2xl border p-3 ${highlight ? "border-coral bg-coral-tint" : "border-line bg-card"}`}>
+    <section className={`flex flex-col gap-2 rounded-lg border p-3 ${highlight ? "border-coral bg-card" : "border-line bg-card"}`}>
       <h2 className="text-sm font-bold">このリンクを送って、意見を集める</h2>
       <p className="break-all rounded-lg bg-card px-2.5 py-1.5 font-mono text-xs">{shareUrl}</p>
-      <button type="button" onClick={copy} className="min-h-11 rounded-full bg-coral px-3 text-[13px] font-bold text-night">
+      <button type="button" onClick={copy} className="min-h-11 rounded-lg bg-coral px-3 text-[13px] font-bold text-night">
         {copied ? "コピーしました" : "リンクをコピー"}
       </button>
       <div className="flex gap-2">
-        <a href={xUrl} target="_blank" rel="noopener noreferrer" className="flex min-h-11 flex-1 items-center justify-center rounded-full bg-night px-3 text-[13px] font-bold text-white">
+        <a href={xUrl} target="_blank" rel="noopener noreferrer" className="flex min-h-11 flex-1 items-center justify-center rounded-lg bg-night px-3 text-[13px] font-bold text-white">
           X に投稿する
         </a>
-        <a href={lineUrl} target="_blank" rel="noopener noreferrer" className="flex min-h-11 flex-1 items-center justify-center rounded-full bg-line-brand px-3 text-[13px] font-bold text-white">
+        <a href={lineUrl} target="_blank" rel="noopener noreferrer" className="flex min-h-11 flex-1 items-center justify-center rounded-lg bg-line-brand px-3 text-[13px] font-bold text-white">
           LINE で送る
         </a>
       </div>
@@ -275,9 +249,9 @@ function SettingsCard({ id, initialPublic, initialClosesAt }: { id: string; init
   }
 
   return (
-    <section className="flex flex-col gap-2 rounded-2xl border border-line bg-card p-3">
+    <section className="flex flex-col gap-2 rounded-lg border border-line bg-card p-3">
       <h2 className="text-sm font-bold">公開範囲</h2>
-      <div role="radiogroup" aria-label="公開範囲" className="flex rounded-full bg-line/60 p-[3px]">
+      <div role="radiogroup" aria-label="公開範囲" className="flex rounded-lg bg-line/60 p-[3px]">
         {[
           { value: true, label: "公開（誰でも）" },
           { value: false, label: "リンクを知っている人だけ" },
@@ -289,7 +263,7 @@ function SettingsCard({ id, initialPublic, initialClosesAt }: { id: string; init
             aria-checked={isPublic === o.value}
             disabled={busy}
             onClick={() => changePublic(o.value)}
-            className={`min-h-10 flex-1 rounded-full text-xs font-bold ${isPublic === o.value ? "bg-card shadow-sm" : "text-muted"}`}
+            className={`min-h-10 flex-1 rounded-md text-xs font-bold ${isPublic === o.value ? "bg-card shadow-sm" : "text-muted"}`}
           >
             {o.label}
           </button>
@@ -299,8 +273,8 @@ function SettingsCard({ id, initialPublic, initialClosesAt }: { id: string; init
         {isPublic
           ? closed
             ? "締め切ったので、いまは一覧に並んでいません。"
-            : "「意見募集中」の一覧に並んでいます。誰でも答えられます。"
-          : "一覧には並びません。リンクを送った相手だけが答えられます。"}
+            : "「みんなの募集」の一覧に並んでいます。誰でも回答できます。"
+          : "一覧には並びません。リンクを送った相手だけが回答できます。"}
       </p>
 
       <div className="flex flex-wrap items-center gap-2 border-t border-line pt-2">
@@ -308,11 +282,11 @@ function SettingsCard({ id, initialPublic, initialClosesAt }: { id: string; init
           <b className="text-sm">締め切り</b>
           <span className={`text-xs ${closed ? "font-bold text-coral" : "text-muted"}`}>{deadlineText(closesAt)}</span>
         </span>
-        <button type="button" onClick={() => setEditing((v) => !v)} disabled={busy} className="min-h-11 rounded-full border border-line px-3.5 text-xs font-bold">
+        <button type="button" onClick={() => setEditing((v) => !v)} disabled={busy} className="min-h-11 rounded-lg border border-line px-3.5 text-xs font-bold">
           {closed ? "再開する" : "変える"}
         </button>
         {!closed && (
-          <button type="button" onClick={closeNow} disabled={busy} className="min-h-11 rounded-full border border-line px-3.5 text-xs font-bold">
+          <button type="button" onClick={closeNow} disabled={busy} className="min-h-11 rounded-lg border border-line px-3.5 text-xs font-bold">
             いま締め切る
           </button>
         )}
@@ -328,7 +302,7 @@ function DeadlinePicker({ onPick, busy }: { onPick: (d: Date | null) => void; bu
   const [date, setDate] = useState("");
   const min = new Date().toISOString().slice(0, 10);
   return (
-    <div className="flex flex-col gap-2 rounded-xl bg-bg p-2.5">
+    <div className="flex flex-col gap-2 rounded-lg bg-bg p-2.5">
       <div className="flex flex-wrap gap-1.5">
         {DEADLINES.map((d) => (
           <button
@@ -336,7 +310,7 @@ function DeadlinePicker({ onPick, busy }: { onPick: (d: Date | null) => void; bu
             type="button"
             disabled={busy}
             onClick={() => onPick(d.days ? deadlineAfter(d.days) : null)}
-            className="min-h-11 rounded-full border border-line bg-card px-3.5 text-sm font-bold"
+            className="min-h-11 rounded-lg border border-line bg-card px-3.5 text-sm font-bold"
           >
             {d.days ? `今日から${d.label}` : "締め切りなし"}
           </button>
@@ -344,8 +318,8 @@ function DeadlinePicker({ onPick, busy }: { onPick: (d: Date | null) => void; bu
       </div>
       <div className="flex items-center gap-2">
         <CalendarIcon />
-        <input type="date" value={date} min={min} onChange={(e) => setDate(e.target.value)} aria-label="締め切りの日付" className="min-h-11 flex-1 rounded-xl border border-line bg-card px-3 text-base" />
-        <button type="button" disabled={!date || busy} onClick={() => onPick(deadlineOn(date))} className="min-h-11 rounded-full bg-coral px-4 text-sm font-bold text-night disabled:opacity-40">
+        <input type="date" value={date} min={min} onChange={(e) => setDate(e.target.value)} aria-label="締め切りの日付" className="min-h-11 flex-1 rounded-lg border border-line bg-card px-3 text-base" />
+        <button type="button" disabled={!date || busy} onClick={() => onPick(deadlineOn(date))} className="min-h-11 rounded-lg bg-coral px-4 text-sm font-bold text-night disabled:opacity-40">
           この日にする
         </button>
       </div>
@@ -383,7 +357,7 @@ function AdminUrlCard({ id, token, highlight }: { id: string; token: string; hig
 
   if (member) {
     return (
-      <section className="flex flex-col gap-1.5 rounded-2xl border border-leaf bg-leaf-tint p-3">
+      <section className="flex flex-col gap-1.5 rounded-lg border border-leaf bg-card p-3">
         <h2 className="text-sm font-bold">この募集は、アカウントに保存されています</h2>
         <p className="text-xs leading-relaxed">
           ログインしているので、この募集は
@@ -398,7 +372,7 @@ function AdminUrlCard({ id, token, highlight }: { id: string; token: string; hig
             <p className="leading-relaxed">
               ログインしないで意見を見たいときに使えます。<strong>人には送らないでください。</strong>
             </p>
-            <button type="button" onClick={copy} className="min-h-11 rounded-full border border-line bg-card px-4 text-[13px] font-bold">
+            <button type="button" onClick={copy} className="min-h-11 rounded-lg border border-line bg-card px-4 text-[13px] font-bold">
               {copied ? "コピーしました" : "自分専用の URL をコピー"}
             </button>
           </div>
@@ -408,12 +382,12 @@ function AdminUrlCard({ id, token, highlight }: { id: string; token: string; hig
   }
 
   return (
-    <section className={`flex flex-col gap-1.5 rounded-2xl border p-3 ${highlight ? "border-peach bg-peach-tint" : "border-line bg-card"}`}>
+    <section className={`flex flex-col gap-1.5 rounded-lg border p-3 ${highlight ? "border-peach bg-card" : "border-line bg-card"}`}>
       <h2 className="text-sm font-bold">意見を見るための、自分専用の URL</h2>
       <p className="text-xs leading-relaxed">
         ほかの端末やブラウザから意見を見るときに使います。メモやブックマークに残しておいてください。<strong>人には送らないでください。</strong>
       </p>
-      <button type="button" onClick={copy} className="min-h-11 rounded-full border border-line bg-card px-4 text-[13px] font-bold">
+      <button type="button" onClick={copy} className="min-h-11 rounded-lg border border-line bg-card px-4 text-[13px] font-bold">
         {copied ? "コピーしました" : "自分専用の URL をコピー"}
       </button>
       <p className="text-xs leading-relaxed text-muted">
@@ -436,7 +410,7 @@ function QuestionResult({ question, responses }: { question: Question; responses
     .map((v) => copy.aliases?.[v] ?? v);
 
   return (
-    <section className="flex flex-col gap-1.5 lg:gap-2.5 lg:rounded-2xl lg:border lg:border-line lg:bg-card lg:p-5">
+    <section className="flex flex-col gap-1.5 lg:gap-2 lg:rounded-lg lg:border lg:border-line lg:bg-card lg:px-4 lg:py-3.5">
       <h2 className="text-sm font-bold leading-snug lg:text-base">
         {label}
         <span className="ml-1.5 text-[11px] font-normal text-muted">{values.length}件</span>

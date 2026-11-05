@@ -2,10 +2,11 @@
 
 import { useState } from "react";
 
+import { CharCount } from "@/components/CharCount";
 import { setDisplayName } from "@/lib/auth";
 
 /**
- * プロフィール（いまは「表示する名前」だけ）。
+ * プロフィール（いまは「表示名」だけ）。
  * 募集を作るときに自動で入り、答える人には「〇〇さんが意見を募集しています」と出る
  */
 export function ProfileCard({ initialName }: { initialName: string }) {
@@ -27,10 +28,13 @@ export function ProfileCard({ initialName }: { initialName: string }) {
   }
 
   return (
-    <section className="flex flex-col gap-2 rounded-2xl border border-line bg-card p-3">
+    <section className="flex flex-col gap-2 rounded-lg border border-line bg-card p-3">
       <h2 className="text-sm font-bold">プロフィール</h2>
       <label className="flex flex-col gap-1">
-        <span className="text-xs font-bold">表示する名前</span>
+        <span className="flex items-baseline text-xs font-bold">
+          表示名
+          <CharCount value={name} max={20} />
+        </span>
         <div className="flex gap-2">
           <input
             value={name}
@@ -38,15 +42,15 @@ export function ProfileCard({ initialName }: { initialName: string }) {
             onKeyDown={(e) => e.key === "Enter" && save()}
             maxLength={20}
             placeholder="例：はなこ"
-            aria-label="表示する名前"
-            className="min-h-11 min-w-0 flex-1 rounded-xl border border-line bg-card px-3 text-base outline-none focus:border-coral"
+            aria-label="表示名"
+            className="min-h-11 min-w-0 flex-1 rounded-lg border border-line bg-card px-3 text-base outline-none focus:border-coral"
           />
-          <button type="button" onClick={save} disabled={!changed || !name.trim() || busy} className="min-h-11 shrink-0 rounded-full bg-coral px-4 text-sm font-bold text-night disabled:opacity-40">
+          <button type="button" onClick={save} disabled={!changed || !name.trim() || busy} className="min-h-11 shrink-0 rounded-lg bg-coral px-4 text-sm font-bold text-night disabled:opacity-40">
             保存
           </button>
         </div>
       </label>
-      <p className="text-xs leading-relaxed text-muted">募集を作るときに自動で入ります。答える人には「〇〇さんが意見を募集しています」と出ます。ニックネームで大丈夫です。</p>
+      <p className="text-xs leading-relaxed text-muted">募集を作るときに自動で入ります。答える人には「〇〇さんが意見を募集しています」と出ます。</p>
       {message && (
         <p role={message.ok ? "status" : "alert"} className={`text-xs font-bold ${message.ok ? "text-leaf-dark" : "text-coral"}`}>
           {message.text}

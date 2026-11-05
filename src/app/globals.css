@@ -2,14 +2,15 @@
 
 /*
  * 意見リンクの色。画面ごとに色コードを直書きせず、ここの名前（bg-coral など）を使う。
- * コーラル・ピーチ・グリーンの上の文字は白にせず、ネイビーにする（読みやすさ）。
+ * 土台は黒・白・グレー。青紫がかった色は使わない。色はコーラル（とピーチ・グリーン）だけを差し色に。
+ * コーラル・ピーチ・グリーンの上の文字は白にせず、黒にする（読みやすさ）。
  */
 :root {
-  --bg: #fff9f5;
+  --bg: #fafafa;
   --card: #ffffff;
-  --ink: #1c1838;
-  --muted: #5e5c66;
-  --line: #e6e3dd;
+  --ink: #111111;
+  --muted: #666666;
+  --line: #e5e5e5;
   --coral: #ee6f55;
   --coral-tint: #fde6e0;
   --peach: #ffb067;
@@ -17,8 +18,9 @@
   --leaf: #78c48c;
   --leaf-tint: #e6f4ea;
   --leaf-dark: #3f8f57;
-  --grape-tint: #ece8fb;
-  --night: #1c1838;
+  /* 画像がないときの下地など（名前は前のまま。中身はグレー） */
+  --grape-tint: #efefef;
+  --night: #111111;
   /* LINE の色（LINE で送るボタンだけに使う） */
   --line-brand: #06c755;
 }
@@ -46,16 +48,96 @@
 @media (prefers-color-scheme: dark) {
   :root {
     --bg: #000000;
-    --card: #14121f;
-    --ink: #f4f2fa;
-    --muted: #a9a6b8;
-    --line: #2a2738;
+    --card: #161616;
+    --ink: #f5f5f5;
+    --muted: #a3a3a3;
+    --line: #2e2e2e;
     --coral-tint: #3a1e19;
     --peach-tint: #3a2a18;
     --leaf-tint: #183224;
     --leaf-dark: #8fd4a2;
-    --grape-tint: #262040;
+    --grape-tint: #262626;
+    --night: #2a2a2a;
   }
+}
+
+/*
+ * 押せるところは、マウスを乗せると色が変わる（いまどこを押そうとしているかが分かるように）。
+ * 枠のあるものは枠をコーラルに、塗りのあるものは少し濃く（暗い表示では少し明るく）、文字だけのリンクは下線を出す。
+ * キーボードで動かしたときは、コーラルの線で囲む。
+ */
+:root {
+  --hover-filter: brightness(0.94);
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --hover-filter: brightness(1.25);
+  }
+}
+:is(a, button, summary, label.cursor-pointer) {
+  transition:
+    border-color 0.15s,
+    background-color 0.15s,
+    filter 0.15s,
+    color 0.15s;
+}
+@media (hover: hover) {
+  :is(a, button, summary, label.cursor-pointer):not(:disabled):hover {
+    filter: var(--hover-filter);
+  }
+  :is(a, button, label.cursor-pointer)[class~="border"]:not(:disabled):hover,
+  :is(a, button, label.cursor-pointer)[class~="border-2"]:not(:disabled):hover {
+    border-color: var(--coral);
+  }
+  a:not([class*="bg-"]):not([class~="border"]):not([aria-label]):hover,
+  button:not([class*="bg-"]):not([class~="border"]):not(:disabled):hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+}
+/* 入力欄も、マウスを乗せると枠が薄いコーラルになる（入力中は濃いコーラル） */
+@media (hover: hover) {
+  :is(input:not([type="checkbox"], [type="radio"], [type="file"]), textarea, select):not(:disabled):not(:focus):hover {
+    border-color: color-mix(in srgb, var(--coral) 55%, var(--line));
+  }
+}
+:is(input, textarea, select) {
+  transition: border-color 0.15s;
+}
+
+:is(a, button, summary):focus-visible {
+  outline: 2px solid var(--coral);
+  outline-offset: 2px;
+}
+
+/*
+ * 線のように細いコーラルのスクロールバー（答える画面の左右の列など）。
+ * Chrome・Safari は ::-webkit-scrollbar で幅を指定する（scrollbar-width を指定すると、こちらが効かなくなるので分ける）
+ */
+.thin-scrollbar::-webkit-scrollbar {
+  width: 1px;
+  height: 1px;
+}
+.thin-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.thin-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--coral);
+  border-radius: 999px;
+}
+.thin-scrollbar::-webkit-scrollbar-button {
+  display: none;
+}
+@supports not selector(::-webkit-scrollbar) {
+  .thin-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: var(--coral) transparent;
+  }
+}
+
+/* 入力欄などのスクロールバーも、暗い表示では暗い色にする */
+:root {
+  color-scheme: light dark;
 }
 
 body {

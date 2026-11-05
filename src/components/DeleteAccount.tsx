@@ -37,7 +37,7 @@ export function DeleteAccount({ account }: { account: Account }) {
     );
   }
   return (
-    <section className="flex flex-col gap-2 rounded-2xl border-2 border-coral bg-coral-tint p-3">
+    <section className="flex flex-col gap-2 rounded-lg border-2 border-coral bg-card p-3">
       <h2 className="text-sm font-bold">{account.state === "member" ? "アカウントを削除する" : "このブラウザのデータを削除する"}</h2>
       <ul className="flex list-disc flex-col gap-0.5 pl-5 text-xs leading-relaxed">
         <li>作った募集と、届いた意見がすべて消えます</li>
@@ -51,14 +51,14 @@ export function DeleteAccount({ account }: { account: Account }) {
           value={typed}
           onChange={(e) => setTyped(e.target.value)}
           aria-label={`確認のため「${word}」と入力`}
-          className="min-h-11 rounded-xl border border-line bg-card px-3 text-base font-normal outline-none focus:border-coral"
+          className="min-h-11 rounded-lg border border-line bg-card px-3 text-base font-normal outline-none focus:border-coral"
         />
       </label>
       <div className="flex gap-2">
-        <button type="button" onClick={() => setOpen(false)} disabled={busy} className="min-h-11 flex-1 rounded-full border border-line bg-card text-sm font-bold">
+        <button type="button" onClick={() => setOpen(false)} disabled={busy} className="min-h-11 flex-1 rounded-lg border border-line bg-card text-sm font-bold">
           やめる
         </button>
-        <button type="button" onClick={run} disabled={typed !== word || busy} className="min-h-11 flex-1 rounded-full bg-coral text-sm font-bold text-night disabled:opacity-40">
+        <button type="button" onClick={run} disabled={typed !== word || busy} className="min-h-11 flex-1 rounded-lg bg-coral text-sm font-bold text-night disabled:opacity-40">
           {busy ? "削除しています…" : "削除する"}
         </button>
       </div>

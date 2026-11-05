@@ -11,8 +11,8 @@ export default function ResultsPage(props: PageProps<"/me/[id]">) {
   return (
     <>
       <Header />
-      <main className={`${PAGE_WIDTH} flex-1 px-3 pb-16 pt-3 lg:px-8 xl:px-12 lg:pt-8`}>
-        <Suspense fallback={<div className="h-40 rounded-2xl bg-line" aria-busy />}>
+      <main className={`${PAGE_WIDTH} flex-1 px-3 pb-12 pt-3 lg:px-8 xl:px-12 lg:pt-5`}>
+        <Suspense fallback={<div className="h-40 rounded-lg bg-line" aria-busy />}>
           <Results params={props.params} searchParams={props.searchParams} />
         </Suspense>
       </main>

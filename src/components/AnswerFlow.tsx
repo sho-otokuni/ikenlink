@@ -50,12 +50,13 @@ export function AnswerFlow({ link }: { link: FeedbackLink }) {
   return (
     <>
       <Header answerer />
-      <main className={`mx-auto flex w-full max-w-md flex-1 flex-col px-3 pb-16 pt-2 ${step === "answer" ? "lg:max-w-[1600px] lg:px-8 lg:pt-10 xl:px-12" : "lg:pt-10"}`}>
+      <main className={`mx-auto flex w-full max-w-md flex-1 flex-col px-3 pb-12 pt-2 ${step === "answer" ? "lg:max-w-[1600px] lg:px-8 lg:pt-6 xl:px-12" : "lg:pt-6"}`}>
         {step === "answer" && (
           // パソコンでは、左に見てほしいもの、右のカードに質問を置く
-          <div className="flex flex-col gap-4 lg:grid lg:grid-cols-[1fr_480px] lg:items-start lg:gap-12 xl:grid-cols-[1fr_540px]">
+          <div className="flex flex-col gap-4 lg:grid lg:grid-cols-[1fr_480px] lg:items-start lg:gap-8 xl:grid-cols-[1fr_540px]">
+            {/* パソコンでは、ページのスクロールは1つだけ。左はページと一緒に動き、右の回答のカードは画面に止めておく（左を下まで読んでも、回答欄はそのまま見える） */}
             <About link={link} />
-            <div className="flex flex-col gap-4 lg:gap-[18px] lg:rounded-2xl lg:border lg:border-line lg:bg-card lg:p-6 lg:shadow-[0_12px_32px_rgba(28,24,56,0.06)]">
+            <div className="flex flex-col gap-4 lg:sticky lg:top-4 lg:max-h-[calc(100dvh-2rem)] lg:overflow-y-auto lg:overscroll-contain thin-scrollbar lg:gap-4 lg:rounded-lg lg:border lg:border-line lg:bg-card lg:p-4 lg:shadow-[0_12px_32px_rgba(0,0,0,0.06)]">
             {link.questions.map((q) => (
               <QuestionField key={q.id} question={q} value={answers[q.id] ?? ""} onChange={(v) => set(q.id, v)} />
             ))}
@@ -65,7 +66,7 @@ export function AnswerFlow({ link }: { link: FeedbackLink }) {
                   {error}
                 </p>
               )}
-              <button type="button" onClick={submit} disabled={!answered || sending} className="min-h-12 rounded-full bg-coral px-6 font-bold text-night transition disabled:opacity-40">
+              <button type="button" onClick={submit} disabled={!answered || sending} className="min-h-12 rounded-lg bg-coral px-6 font-bold text-night transition disabled:opacity-40">
                 {sending ? "送っています…" : "意見を送る"}
               </button>
               <p className="text-center text-[11px] text-muted lg:text-xs">送った意見は、募集した人だけが読めます。名前は送られません。</p>
@@ -94,7 +95,7 @@ function About({ link }: { link: FeedbackLink }) {
         <div className="-mx-3 flex w-[calc(100%+1.5rem)] gap-2 overflow-x-auto px-3 lg:mx-0 lg:w-full lg:flex-wrap lg:gap-3 lg:overflow-visible lg:px-0">
           {link.images.map((src, i) => (
             // 押すと、元の大きさで開く
-            <a key={src} href={src} target="_blank" rel="noopener noreferrer" className="shrink-0 overflow-hidden rounded-xl border border-line bg-card">
+            <a key={`${i}-${src}`} href={src} target="_blank" rel="noopener noreferrer" className="shrink-0 overflow-hidden rounded-lg border border-line bg-card">
               {/* 見てほしいものの中心なので、すぐ読み込む（大きさが決まる前は幅0になり、遅らせると読み込まれないことがある） */}
               <Image src={src} alt={`画像 ${i + 1}`} width={0} height={0} sizes="320px" loading="eager" className="h-52 w-auto min-w-24 max-w-[80vw] object-contain lg:h-80 lg:max-w-full" />
             </a>
@@ -102,13 +103,13 @@ function About({ link }: { link: FeedbackLink }) {
         </div>
       )}
       {link.tagline && <p className="whitespace-pre-wrap text-sm leading-relaxed lg:text-base lg:leading-loose">{link.tagline}</p>}
-      {link.urls.map((url) => (
+      {link.urls.map((url, i) => (
         <a
-          key={url}
+          key={`${i}-${url}`}
           href={url}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex min-h-12 w-full items-center gap-2.5 rounded-xl border-2 border-coral bg-coral-tint px-3 py-2 lg:min-h-14 lg:px-3.5"
+          className="flex min-h-12 w-full items-center gap-2.5 rounded-lg border-2 border-coral bg-coral-tint px-3 py-2 lg:min-h-14 lg:px-3.5"
         >
           <LinkIcon />
           <span className="flex min-w-0 flex-1 flex-col">
@@ -137,7 +138,7 @@ function QuestionField({ question, value, onChange }: { question: Question; valu
               type="button"
               aria-pressed={value === c}
               onClick={() => onChange(value === c ? "" : c)}
-              className={`min-h-11 rounded-full border px-4 text-sm font-bold transition ${value === c ? "border-coral bg-coral text-night" : "border-line bg-card"}`}
+              className={`min-h-11 rounded-lg border px-4 text-sm font-bold transition ${value === c ? "border-coral bg-coral text-night" : "border-line bg-card"}`}
             >
               {c}
             </button>
@@ -151,7 +152,7 @@ function QuestionField({ question, value, onChange }: { question: Question; valu
           rows={2}
           placeholder={copy.placeholder}
           aria-label={label}
-          className="rounded-xl border border-line bg-card px-3 py-2.5 text-base leading-relaxed outline-none focus:border-coral"
+          className="rounded-lg border border-line bg-card px-3 py-2.5 text-base leading-relaxed outline-none focus:border-coral"
         />
       )}
     </fieldset>
@@ -160,9 +161,9 @@ function QuestionField({ question, value, onChange }: { question: Question; valu
 
 /** 一覧へ（お礼と締め切り後の画面の下） */
 function Onward() {
-  // 答えたあとの行き先は「意見募集中」の一覧（使い始めた人にとっての「ホーム」はここ）
+  // 答えたあとの行き先は「みんなの募集」の一覧（使い始めた人にとっての「ホーム」はここ）
   return (
-    <Link href="/list" className="flex min-h-12 w-full items-center justify-center rounded-full bg-coral px-4 text-center font-bold text-night">
+    <Link href="/list" className="flex min-h-12 w-full items-center justify-center rounded-lg bg-coral px-4 text-center font-bold text-night">
       一覧でほかの意見に答える
     </Link>
   );
@@ -182,10 +183,10 @@ function Done({ makerName, answeredCount }: { makerName: string; answeredCount: 
       )}
       <Onward />
       {/* 答えた人が、次は募集する側になれるように */}
-      <div className="flex flex-col gap-2 rounded-2xl bg-leaf-tint p-3">
+      <div className="flex flex-col gap-2 rounded-lg border border-line bg-card p-3">
         <b className="text-[15px]">あなたも「どう思う？」と聞いてみませんか</b>
         <p className="text-[13px] leading-relaxed">画像1枚から、同じように意見を集められます。</p>
-        <Link href="/new" className="flex min-h-11 items-center justify-center rounded-full bg-leaf font-bold text-night">
+        <Link href="/new" className="flex min-h-11 items-center justify-center rounded-lg bg-leaf font-bold text-night">
           意見を募集する
         </Link>
       </div>

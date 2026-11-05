@@ -5,8 +5,8 @@ export function DocPage({ title, updated, lead, children }: { title: string; upd
   return (
     <>
       <Header />
-      <main className={`${PAGE_WIDTH} flex-1 px-3 pb-16 pt-4 lg:px-8 xl:px-12 lg:pt-10`}>
-        <article className="mx-auto flex max-w-2xl flex-col gap-6">
+      <main className={`${PAGE_WIDTH} flex-1 px-3 pb-12 pt-3 lg:px-8 xl:px-12 lg:pt-6`}>
+        <article className="mx-auto flex max-w-2xl flex-col gap-5">
           <header className="flex flex-col gap-2">
             <h1 className="font-round text-2xl font-bold lg:text-[32px]">{title}</h1>
             {updated && <p className="text-xs text-muted">最終更新日：{updated}</p>}

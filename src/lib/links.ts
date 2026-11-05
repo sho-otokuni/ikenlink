@@ -10,7 +10,7 @@ export type MyLink = FeedbackLink & { createdAt: string; isPublic: boolean; resp
 export type Response = { id: string; answers: Answers; createdAt: string };
 /** 意見を見る画面に出すもの。adminToken と isPublic は、作った人が自分の端末で開いたときだけ入る */
 export type Results = { link: FeedbackLink; responses: Response[]; adminToken: string | null; isPublic: boolean | null };
-/** 意見募集中の一覧の1件（届いた意見の中身は出さず、数だけ）。ownerAnswered は募集した人がほかの募集に答えた数 */
+/** みんなの募集の一覧の1件（届いた意見の中身は出さず、数だけ）。ownerAnswered は募集した人がほかの募集に答えた数 */
 export type PublicLink = {
   id: string;
   kind: LinkKind;
@@ -180,7 +180,7 @@ function dataUrlToBlob(dataUrl: string) {
   return new Blob([bytes], { type });
 }
 
-export type LinkDraft = Omit<FeedbackLink, "id"> & { /** 意見募集中の一覧に載せるか */ isPublic: boolean };
+export type LinkDraft = Omit<FeedbackLink, "id"> & { /** みんなの募集の一覧に載せるか */ isPublic: boolean };
 
 /** これから作る募集の id。画像を選んだ時点で置き始めるため、作る前に決めておける */
 export function newLinkId() {
@@ -354,7 +354,7 @@ export async function fetchResultsByToken(id: string, token: string): Promise<Re
   };
 }
 
-/** 意見募集中の一覧（新しい順。締め切ったものは入らない） */
+/** みんなの募集の一覧（新しい順。締め切ったものは入らない） */
 export async function fetchPublicLinks(): Promise<Result<PublicLink[]>> {
   if (!isSupabaseConfigured) return { ok: false, message: NOT_READY };
   const { data, error } = await supabase.rpc("public_links", { p_limit: 100 });
@@ -386,7 +386,7 @@ export async function fetchPublicLinks(): Promise<Result<PublicLink[]>> {
   };
 }
 
-/** 意見募集中の一覧に載せる・外す（作った人だけ） */
+/** みんなの募集の一覧に載せる・外す（作った人だけ） */
 export async function setLinkPublic(id: string, isPublic: boolean): Promise<Result<null>> {
   const { error } = await supabase.from("links").update({ is_public: isPublic }).eq("id", id);
   return error ? { ok: false, message: `変えられませんでした。${NETWORK}` } : { ok: true, data: null };
