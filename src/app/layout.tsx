@@ -32,6 +32,8 @@ export const metadata: Metadata = {
   // X では、大きな画像付きのカードで出す
   twitter: { card: "summary_large_image", title: SITE_NAME, description: SITE_DESCRIPTION },
   formatDetection: { telephone: false },
+  // Google Search Console の所有確認（公開してよい値）
+  verification: { google: "kD3wLmByYgorB0RLJQC1fcANBa2qaBxrccWb0L4_780" },
 };
 
 export const viewport: Viewport = {
