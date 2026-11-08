@@ -23,7 +23,8 @@ export function Header({ current, answerer = false }: { current?: "/list" | "/me
       <header className={`${PAGE_WIDTH} flex items-center justify-between pl-3 pr-2 pt-1 lg:h-16 lg:px-8 lg:pt-0 xl:px-12`}>
         <Link href="/" aria-label="意見リンク（ホームへ）" className="flex min-h-11 items-center gap-1.5 pr-1 lg:gap-2">
           <LogoMark />
-          <span className="whitespace-nowrap font-round text-base font-bold lg:text-[19px]">意見リンク</span>
+          {/* スマホの幅では、メニューが折り返さないよう、ロゴのマークだけにする */}
+          <span className="hidden whitespace-nowrap font-round text-base font-bold sm:inline lg:text-[19px]">意見リンク</span>
         </Link>
         <nav className="flex items-center lg:gap-1">
           {NAV.filter((n) => !answerer || n.href === "/list").map((n) => (
@@ -31,7 +32,7 @@ export function Header({ current, answerer = false }: { current?: "/list" | "/me
               key={n.href}
               href={n.href}
               aria-current={current === n.href ? "page" : undefined}
-              className={`relative flex min-h-11 items-center rounded-lg px-2.5 text-[13px] font-bold hover:bg-line lg:px-3.5 lg:text-sm ${
+              className={`relative flex min-h-11 items-center whitespace-nowrap rounded-lg px-2.5 text-[13px] font-bold hover:bg-line lg:px-3.5 lg:text-sm ${
                 // 今いる画面は、文字の下にまっすぐなコーラルの線を引く（角の丸みに沿わせない）
                 current === n.href ? "text-ink after:absolute after:inset-x-2.5 after:bottom-0 after:h-0.5 after:bg-coral lg:after:inset-x-3.5" : "text-muted hover:text-ink"
               }`}

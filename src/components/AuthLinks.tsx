@@ -22,7 +22,7 @@ export function AuthLinks() {
 
   if (account?.state === "member") return null;
   return (
-    <p className={`flex min-h-11 flex-wrap items-center gap-x-1 text-sm text-muted ${account ? "" : "invisible"}`}>
+    <p className={`flex min-h-11 flex-wrap items-center justify-center gap-x-1 text-sm text-muted lg:justify-start ${account ? "" : "invisible"}`}>
       <Link href="/signup" className="flex min-h-11 items-center font-bold text-ink underline-offset-4 hover:underline">
         アカウント登録
       </Link>

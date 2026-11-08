@@ -43,7 +43,7 @@ export function AccountMenu() {
 
   if (account.state !== "member") {
     return (
-      <Link href="/login" className="ml-1 flex min-h-11 shrink-0 items-center rounded-lg border border-line px-3 text-[13px] font-bold lg:px-4 lg:text-sm">
+      <Link href="/login" className="ml-1 flex min-h-11 shrink-0 items-center whitespace-nowrap rounded-lg border border-line px-3 text-[13px] font-bold lg:px-4 lg:text-sm">
         ログイン
       </Link>
     );

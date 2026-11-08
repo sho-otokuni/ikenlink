@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import { AuthLinks } from "@/components/AuthLinks";
 import { Header, PAGE_WIDTH } from "@/components/Header";
+import { LogoMark } from "@/components/Logo";
 import { RecentLinks } from "@/components/RecentLinks";
 
 /** はじめの画面。パソコンの幅では、右に答える画面の見本、下に募集中のものを出す */
@@ -12,24 +13,31 @@ export default function Home() {
       <main className={`${PAGE_WIDTH} flex flex-1 flex-col gap-4 px-3 pb-12 pt-3 lg:gap-8 lg:px-8 xl:px-12 lg:pt-10`}>
         {/* パソコンでは、左に見出し・説明・ボタン、右に「使い方の例」を並べる */}
         <div className="flex flex-col gap-4 lg:grid lg:grid-cols-[1fr_460px] lg:items-center lg:gap-10 xl:grid-cols-[1fr_540px]">
-          <section className="flex flex-col gap-3 lg:gap-4">
+          {/*
+            スマホでは X や Instagram のはじめの画面のように、ロゴ・見出し・ボタンを画面の真ん中にそろえて縦に並べる。
+            パソコンでは左寄せのまま
+          */}
+          <section className="flex min-h-[calc(100dvh-7rem)] flex-col items-center justify-center gap-4 text-center lg:min-h-0 lg:items-stretch lg:justify-start lg:gap-4 lg:text-left">
+            <span className="lg:hidden">
+              <LogoMark size={64} />
+            </span>
             <h1 className="font-round text-[28px] font-bold leading-snug lg:text-[56px] lg:leading-tight">
               「これ、どう思う？」
               <br />
               を気軽に。
             </h1>
-            <p className="text-sm leading-relaxed text-muted lg:text-[17px] lg:leading-loose">
+            <p className="text-[13px] leading-relaxed text-muted sm:text-sm lg:text-[17px] lg:leading-loose">
               思いついたアイデアも、つくりかけのものも。
               <br />
               画像やURLを貼って共有して、意見をもらってみませんか。
               <br />
               答える人は、リンクを開いてそのまま回答できます。
             </p>
-            <div className="flex flex-col gap-2 sm:flex-row lg:gap-3">
-              <Link href="/new" className="flex min-h-12 items-center justify-center rounded-lg bg-coral px-6 font-bold text-night sm:flex-1 lg:min-h-13 lg:flex-none lg:px-7">
+            <div className="mt-2 flex w-full max-w-sm flex-col gap-2.5 lg:mt-0 lg:max-w-none lg:flex-row lg:gap-3">
+              <Link href="/new" className="flex min-h-12 items-center justify-center rounded-lg bg-coral px-6 font-bold text-night lg:min-h-13 lg:px-7">
                 意見を募集する（無料）
               </Link>
-              <Link href="/list" className="flex min-h-12 items-center justify-center rounded-lg border border-line bg-card px-6 font-bold sm:flex-1 lg:min-h-13 lg:flex-none lg:px-7">
+              <Link href="/list" className="flex min-h-12 items-center justify-center rounded-lg border border-line bg-card px-6 font-bold lg:min-h-13 lg:px-7">
                 みんなの募集に答える
               </Link>
             </div>
