@@ -4,8 +4,9 @@ import Link from "next/link";
 import { DocPage, DocSection } from "@/components/DocPage";
 
 export const metadata: Metadata = {
-  title: "使い方｜意見リンク",
-  description: "意見リンクの使い方。意見を募集する方と、回答する方のための説明です。",
+  title: "使い方",
+  description: "意見リンクの使い方。意見の募集、質問の設定、公開範囲、届いた意見の確認、回答、アカウント登録について説明します。",
+  alternates: { canonical: "/guide" },
 };
 
 const linkClass = "font-bold text-coral underline-offset-2 hover:underline";

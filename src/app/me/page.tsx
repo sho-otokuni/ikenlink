@@ -4,7 +4,7 @@ import { Suspense } from "react";
 import { Header } from "@/components/Header";
 import { MyLinks } from "@/components/MyLinks";
 
-export const metadata: Metadata = { title: "マイページ｜意見リンク", robots: { index: false, follow: false } };
+export const metadata: Metadata = { title: "マイページ", robots: { index: false, follow: false } };
 
 /** マイページ（プロフィールと、募集・回答の一覧） */
 export default function MyLinksPage() {

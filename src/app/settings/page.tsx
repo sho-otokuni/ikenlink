@@ -4,7 +4,7 @@ import Link from "next/link";
 import { Header } from "@/components/Header";
 import { SettingsPanel } from "@/components/SettingsPanel";
 
-export const metadata: Metadata = { title: "設定｜意見リンク", robots: { index: false, follow: false } };
+export const metadata: Metadata = { title: "設定", robots: { index: false, follow: false } };
 
 /** 設定（アカウント・プロフィール・データの削除）。ヘッダーのアカウントのメニューと、マイページの画面から来る */
 export default function SettingsPage() {

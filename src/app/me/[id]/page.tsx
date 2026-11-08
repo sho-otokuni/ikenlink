@@ -4,7 +4,7 @@ import { Suspense } from "react";
 import { Header, PAGE_WIDTH } from "@/components/Header";
 import { LinkResults } from "@/components/LinkResults";
 
-export const metadata: Metadata = { title: "届いた意見｜意見リンク", robots: { index: false, follow: false } };
+export const metadata: Metadata = { title: "届いた意見", robots: { index: false, follow: false } };
 
 /** 作った人が、リンクを共有し、届いた意見を見る画面 */
 export default function ResultsPage(props: PageProps<"/me/[id]">) {

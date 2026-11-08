@@ -3,6 +3,7 @@ import { Noto_Sans_JP, Zen_Maru_Gothic } from "next/font/google";
 import "./globals.css";
 
 import { Footer } from "@/components/Footer";
+import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/site";
 
 // 本文は Noto Sans JP、見出しは Zen Maru Gothic
 const noto = Noto_Sans_JP({
@@ -17,18 +18,20 @@ const zen = Zen_Maru_Gothic({
   weight: ["500", "700"],
 });
 
-/** 画像カードなどの URL の土台。独自ドメインにしたら NEXT_PUBLIC_SITE_URL に入れる */
-const siteUrl =
-  process.env.NEXT_PUBLIC_SITE_URL ??
-  (process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : "http://localhost:3000");
-
+/**
+ * 検索エンジン・SNS 向けの情報。各画面の title は「〇〇｜意見リンク」の形になる（template）。
+ * canonical は各画面で、その画面の住所を入れる
+ */
 export const metadata: Metadata = {
-  metadataBase: new URL(siteUrl),
-  title: "意見リンク",
-  description: "「どう思う？」を気軽に聞ける。画像や URL を貼るだけで、意見が集まるリンクができる。回答は登録不要、30秒。",
-  openGraph: { siteName: "意見リンク", locale: "ja_JP", type: "website" },
+  metadataBase: new URL(SITE_URL),
+  title: { default: `${SITE_NAME}｜「これ、どう思う？」を気軽に聞ける意見募集サービス`, template: `%s｜${SITE_NAME}` },
+  description: SITE_DESCRIPTION,
+  applicationName: SITE_NAME,
+  alternates: { canonical: "/" },
+  openGraph: { siteName: SITE_NAME, locale: "ja_JP", type: "website", title: SITE_NAME, description: SITE_DESCRIPTION, url: "/" },
   // X では、大きな画像付きのカードで出す
-  twitter: { card: "summary_large_image" },
+  twitter: { card: "summary_large_image", title: SITE_NAME, description: SITE_DESCRIPTION },
+  formatDetection: { telephone: false },
 };
 
 export const viewport: Viewport = {

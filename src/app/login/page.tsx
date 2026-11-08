@@ -4,7 +4,7 @@ import Link from "next/link";
 import { Header } from "@/components/Header";
 import { LoginPanel } from "@/components/SignupPanel";
 
-export const metadata: Metadata = { title: "ログイン｜意見リンク", robots: { index: false, follow: false } };
+export const metadata: Metadata = { title: "ログイン", robots: { index: false, follow: false } };
 
 /** 登録済みのアカウントでログインする画面。マイページの「ログイン」から来る */
 export default function LoginPage() {

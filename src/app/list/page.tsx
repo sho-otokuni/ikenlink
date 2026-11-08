@@ -4,8 +4,10 @@ import { Header, PAGE_WIDTH } from "@/components/Header";
 import { PublicList } from "@/components/PublicList";
 
 export const metadata: Metadata = {
-  title: "みんなの募集｜意見リンク",
-  description: "アイデア、デザイン、作ったもの。いろんな人が「どう思う？」と意見を募集しています。登録不要、30秒で回答できます。",
+  title: "みんなの募集",
+  description: "アプリ・サービス、アイデア、デザイン、文章など、公開中の意見募集の一覧です。気になる募集に、登録不要・匿名で30秒から回答できます。",
+  alternates: { canonical: "/list" },
+  openGraph: { title: "みんなの募集", url: "/list" },
 };
 
 /** みんなの募集の一覧（公開を選んだ、締め切り前の募集） */

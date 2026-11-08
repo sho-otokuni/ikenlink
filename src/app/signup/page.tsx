@@ -4,7 +4,7 @@ import Link from "next/link";
 import { Header } from "@/components/Header";
 import { SignupPanel } from "@/components/SignupPanel";
 
-export const metadata: Metadata = { title: "アカウント登録｜意見リンク", robots: { index: false, follow: false } };
+export const metadata: Metadata = { title: "アカウント登録", robots: { index: false, follow: false } };
 
 /** アカウント登録（ログイン）の画面。マイページの「アカウント登録」から来る */
 export default function SignupPage() {

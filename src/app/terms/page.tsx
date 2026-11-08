@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 
 import { DocPage, DocSection } from "@/components/DocPage";
 
-export const metadata: Metadata = { title: "利用規約｜意見リンク" };
+export const metadata: Metadata = { title: "利用規約", description: "意見リンクの利用規約です。", alternates: { canonical: "/terms" } };
 
 const contact = (
   <a href="https://x.com/kinoto_jp" target="_blank" rel="noopener noreferrer" className="font-bold text-coral underline-offset-2 hover:underline">

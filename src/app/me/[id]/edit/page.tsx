@@ -4,7 +4,7 @@ import { Suspense } from "react";
 import { EditLink } from "@/components/EditLink";
 import { Header, PAGE_WIDTH } from "@/components/Header";
 
-export const metadata: Metadata = { title: "募集を直す｜意見リンク", robots: { index: false, follow: false } };
+export const metadata: Metadata = { title: "募集を直す", robots: { index: false, follow: false } };
 
 /** 作った募集を直す画面（作った本人だけ） */
 export default function EditLinkPage(props: PageProps<"/me/[id]/edit">) {

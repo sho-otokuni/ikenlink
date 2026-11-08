@@ -4,7 +4,7 @@ import Link from "next/link";
 import { Header, PAGE_WIDTH } from "@/components/Header";
 import { MyAnswers } from "@/components/MyAnswers";
 
-export const metadata: Metadata = { title: "自分の回答｜意見リンク", robots: { index: false, follow: false } };
+export const metadata: Metadata = { title: "自分の回答", robots: { index: false, follow: false } };
 
 /** 自分がこれまでに答えた意見（アカウント登録している人だけ） */
 export default function MyAnswersPage() {

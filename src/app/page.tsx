@@ -4,11 +4,31 @@ import { AuthLinks } from "@/components/AuthLinks";
 import { Header, PAGE_WIDTH } from "@/components/Header";
 import { LogoMark } from "@/components/Logo";
 import { RecentLinks } from "@/components/RecentLinks";
+import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/site";
 
 /** はじめの画面。パソコンの幅では、右に答える画面の見本、下に募集中のものを出す */
+/** 検索エンジン向けの構造化データ（このサイトが何のサービスか） */
+const JSON_LD = {
+  "@context": "https://schema.org",
+  "@graph": [
+    { "@type": "WebSite", name: SITE_NAME, url: SITE_URL, inLanguage: "ja" },
+    {
+      "@type": "WebApplication",
+      name: SITE_NAME,
+      url: SITE_URL,
+      description: SITE_DESCRIPTION,
+      applicationCategory: "BusinessApplication",
+      operatingSystem: "Web",
+      inLanguage: "ja",
+      offers: { "@type": "Offer", price: "0", priceCurrency: "JPY" },
+    },
+  ],
+};
+
 export default function Home() {
   return (
     <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(JSON_LD).replace(/</g, "\\u003c") }} />
       <Header />
       <main className={`${PAGE_WIDTH} flex flex-1 flex-col gap-4 px-3 pb-12 pt-3 lg:gap-8 lg:px-8 xl:px-12 lg:pt-10`}>
         {/* パソコンでは、左に見出し・説明・ボタン、右に「使い方の例」を並べる */}

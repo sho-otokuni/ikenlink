@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 
 import { DocPage, DocSection } from "@/components/DocPage";
 
-export const metadata: Metadata = { title: "プライバシーポリシー｜意見リンク" };
+export const metadata: Metadata = { title: "プライバシーポリシー", description: "意見リンクにおける利用者情報の取扱いについて定めたプライバシーポリシーです。", alternates: { canonical: "/privacy" } };
 
 const contact = (
   <a href="https://x.com/kinoto_jp" target="_blank" rel="noopener noreferrer" className="font-bold text-coral underline-offset-2 hover:underline">

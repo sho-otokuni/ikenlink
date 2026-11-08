@@ -3,15 +3,22 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 
 import { AnswerFlow } from "@/components/AnswerFlow";
-import { getLink } from "@/lib/links";
+import { fetchPublicLinks, getLink } from "@/lib/links";
 
 export async function generateMetadata(props: PageProps<"/l/[id]">): Promise<Metadata> {
   const { id } = await props.params;
-  const link = await getLink(id);
-  if (!link) return { title: "意見リンク" };
+  const [link, listed] = await Promise.all([getLink(id), fetchPublicLinks()]);
+  if (!link) return { title: "募集が見つかりません", robots: { index: false, follow: false } };
+  // 検索に載せるのは「みんなの募集」に並んでいる（公開・締め切り前の）募集だけ。非公開の募集は、リンクを知っている人だけのもの
+  const isListed = listed.ok && listed.data.some((l) => l.id === link.id);
+  const description = `${link.makerName}さんが意見を募集しています。${link.tagline ? `${link.tagline.replace(/\s+/g, " ").slice(0, 80)} ` : ""}登録不要・匿名で30秒から回答できます。`;
   return {
-    title: `${link.title}｜意見リンク`,
-    description: `${link.makerName}さんが意見を募集しています。登録不要、30秒で回答できます。`,
+    title: link.title,
+    description,
+    alternates: { canonical: `/l/${link.id}` },
+    robots: isListed ? { index: true, follow: true } : { index: false, follow: false },
+    openGraph: { title: link.title, description, url: `/l/${link.id}`, type: "article" },
+    twitter: { title: link.title, description },
   };
 }
 
