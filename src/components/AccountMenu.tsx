@@ -62,9 +62,10 @@ export function AccountMenu() {
         aria-haspopup="menu"
         aria-expanded={open}
         aria-label={`アカウントのメニュー（${name}）`}
-        className="flex h-11 w-11 items-center justify-center rounded-full"
+        // マウスを乗せたとき・メニューを開いているときは、周りを薄いグレーにし、枠をコーラルにする
+        className={`group flex h-11 w-11 items-center justify-center rounded-full hover:bg-line ${open ? "bg-line" : ""}`}
       >
-        <span className="flex h-9 w-9 items-center justify-center rounded-full border border-line bg-card font-round text-sm font-bold">
+        <span className={`flex h-9 w-9 items-center justify-center rounded-full border-2 bg-card font-round text-sm font-bold group-hover:border-coral ${open ? "border-coral" : "border-line"}`}>
           {member || displayName ? (
             name.slice(0, 1).toUpperCase()
           ) : (

@@ -71,34 +71,37 @@ export function MyLinks() {
     <div className="flex flex-col gap-4">
       <h1 className="sr-only">マイページ</h1>
 
-      {/* プロフィール */}
+      {/* プロフィール。設定へはヘッダーのアイコンのメニューから行く */}
       <section className="flex flex-col gap-3 rounded-lg border border-line bg-card p-4">
         <div className="flex items-center gap-3">
           <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full border border-line bg-bg font-round text-xl font-bold">
-            {(name || "？").slice(0, 1).toUpperCase()}
+            {name ? (
+              name.slice(0, 1).toUpperCase()
+            ) : (
+              // 名前のないゲストは、人の形の線画
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden>
+                <circle cx="12" cy="8" r="4" />
+                <path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6" />
+              </svg>
+            )}
           </span>
           <span className="flex min-w-0 flex-1 flex-col">
-            <b className="truncate font-round text-lg">{name || "名前未設定"}</b>
-            <span className="truncate text-xs text-muted">
-              {account?.state === "member" ? (account.who ?? "ログイン中") : "未登録（このブラウザで利用中）"}
-            </span>
+            <b className="truncate font-round text-lg">{name || (account?.state === "member" ? "名前未設定" : "ゲスト")}</b>
+            {account?.state === "member" && account.who && <span className="truncate text-xs text-muted">{account.who}</span>}
+            {account && account.state !== "member" && name && <span className="text-xs text-muted">ゲスト</span>}
           </span>
         </div>
-        <div className="flex gap-2">
-          {account && account.state !== "none" && (
-            <button
-              type="button"
-              onClick={() => setEditing((v) => !v)}
-              aria-expanded={editing}
-              className="flex min-h-10 flex-1 items-center justify-center rounded-lg border border-line text-[13px] font-bold"
-            >
-              {editing ? "閉じる" : "名前を変更"}
-            </button>
-          )}
-          <Link href="/settings" className="flex min-h-10 flex-1 items-center justify-center rounded-lg border border-line text-[13px] font-bold">
-            設定
-          </Link>
-        </div>
+        {/* 名前を残す先（利用者）がまだない人は、初めて募集したときに保存するので出さない */}
+        {account && account.state !== "none" && (
+          <button
+            type="button"
+            onClick={() => setEditing((v) => !v)}
+            aria-expanded={editing}
+            className="flex min-h-10 items-center justify-center rounded-lg border border-line text-[13px] font-bold"
+          >
+            {editing ? "閉じる" : "名前を変更"}
+          </button>
+        )}
         {editing && account && account.state !== "none" && <ProfileCard initialName={name} onSaved={setName} />}
       </section>
 
