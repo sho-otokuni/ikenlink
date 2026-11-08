@@ -7,8 +7,8 @@ import { getAccount, signOut, type Account } from "@/lib/auth";
 
 /**
  * ヘッダーの右端の、アカウントの入口。
- * まだ何も使っていない人には「ログイン」、使っている人（登録せずに使っている人も）には丸いアイコンを出し、
- * 押すと「マイページ・自分の回答・設定」と、ログアウト（登録していない人はログイン・アカウント登録）のメニューを開く
+ * 丸いアイコンを出し、押すと「マイページ・自分の回答・設定」と「ログアウト」のメニューを開く。
+ * ログインしていない人（ゲスト）も同じメニューで、名前の代わりに「ゲスト」、ログアウトの代わりに「ログイン」を出す
  */
 export function AccountMenu() {
   const [account, setAccount] = useState<Account | null>(null);
@@ -41,18 +41,11 @@ export function AccountMenu() {
   // 読み込み中は、場所だけ取っておく（あとから出てきて、ほかの項目がずれないように）
   if (!account) return <span className="ml-1 h-9 w-9 shrink-0" aria-hidden />;
 
-  // まだ何も使っていない人は「ログイン」だけ（マイページに出すものがない）
-  if (account.state === "none") {
-    return (
-      <Link href="/login" className="ml-1 flex min-h-11 shrink-0 items-center whitespace-nowrap rounded-lg border border-line px-3 text-[13px] font-bold lg:px-4 lg:text-sm">
-        ログイン
-      </Link>
-    );
-  }
-
+  // ログインしていない人（ゲスト）にも同じアイコンとメニューを出す。名前の代わりに「ゲスト」と出し、ログアウトの代わりにログイン
   const member = account.state === "member";
-  const name = account.displayName || (member ? account.who : null) || "ゲスト";
-  const sub = member ? account.who : "未登録（このブラウザで利用中）";
+  const displayName = account.state === "none" ? "" : account.displayName;
+  const name = member ? displayName || account.who || "アカウント" : displayName || "ゲスト";
+  const sub = member ? account.who : displayName ? "ゲスト" : null;
   async function logout() {
     if (!window.confirm("ログアウトしますか？もう一度ログインすれば、募集と回答はまた確認できます。")) return;
     await signOut();
@@ -72,7 +65,15 @@ export function AccountMenu() {
         className="flex h-11 w-11 items-center justify-center rounded-full"
       >
         <span className="flex h-9 w-9 items-center justify-center rounded-full border border-line bg-card font-round text-sm font-bold">
-          {name.slice(0, 1).toUpperCase()}
+          {member || displayName ? (
+            name.slice(0, 1).toUpperCase()
+          ) : (
+            // 名前のないゲストは、人の形の線画
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden>
+              <circle cx="12" cy="8" r="4" />
+              <path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6" />
+            </svg>
+          )}
         </span>
       </button>
       {open && (
@@ -97,15 +98,9 @@ export function AccountMenu() {
               ログアウト
             </button>
           ) : (
-            // 登録せずに使っている人は、ここから登録・ログインできる
-            [
-              { href: "/login", label: "ログイン" },
-              { href: "/signup", label: "アカウント登録" },
-            ].map((m) => (
-              <Link key={m.href} role="menuitem" href={m.href} onClick={() => setOpen(false)} className="flex min-h-11 items-center rounded-md px-3 text-sm hover:bg-line">
-                {m.label}
-              </Link>
-            ))
+            <Link role="menuitem" href="/login" onClick={() => setOpen(false)} className="flex min-h-11 items-center rounded-md px-3 text-sm hover:bg-line">
+              ログイン
+            </Link>
           )}
         </div>
       )}
