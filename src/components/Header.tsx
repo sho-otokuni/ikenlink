@@ -3,10 +3,8 @@ import Link from "next/link";
 import { AccountMenu } from "@/components/AccountMenu";
 import { LogoMark } from "@/components/Logo";
 
-const NAV = [
-  { href: "/list", label: "みんなの募集" },
-  { href: "/me", label: "マイページ" },
-] as const;
+// マイページは、右端のアカウントのアイコンから行く
+const NAV = [{ href: "/list", label: "みんなの募集" }] as const;
 
 /** 画面の中身の幅。スマホでは画面いっぱい、パソコンでは画面の幅を広く使い、1600px までにそろえる（左右の余白は各画面で lg:px-8 xl:px-12） */
 export const PAGE_WIDTH = "mx-auto w-full max-w-2xl lg:max-w-[1600px]";
@@ -27,7 +25,7 @@ export function Header({ current, answerer = false }: { current?: "/list" | "/me
           <span className="hidden whitespace-nowrap font-round text-base font-bold sm:inline lg:text-[19px]">意見リンク</span>
         </Link>
         <nav className="flex items-center lg:gap-1">
-          {NAV.filter((n) => !answerer || n.href === "/list").map((n) => (
+          {NAV.map((n) => (
             <Link
               key={n.href}
               href={n.href}
