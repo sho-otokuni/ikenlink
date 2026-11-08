@@ -6,7 +6,7 @@ import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { CharCount } from "@/components/CharCount";
 import { CalendarIcon } from "@/components/icons";
 import { LinkPreview } from "@/components/LinkPreview";
-import { checkDrafts, defaultDrafts, draftsFrom, QuestionBuilder, toQuestions, type QuestionDraft } from "@/components/QuestionBuilder";
+import { checkDrafts, defaultDrafts, draftsFrom, draftText, QuestionBuilder, toQuestions, type QuestionDraft } from "@/components/QuestionBuilder";
 import { getAccount, setDisplayName } from "@/lib/auth";
 import { shrinkImage } from "@/lib/image";
 import { createLink, newLinkId, updateLink, uploadImage } from "@/lib/links";
@@ -377,9 +377,9 @@ export function NewLinkForm({ editing }: { editing?: EditTarget }) {
 /** パソコンの幅だけ：入力しながら、答える人にどう見えるかを右に出す */
 function Preview({ drafts, ...rest }: Omit<React.ComponentProps<typeof LinkPreview>, "questions" | "className" | "sticky"> & { drafts: QuestionDraft[] }) {
   const questions = drafts
-    .filter((d) => d.text.trim())
+    .filter((d) => draftText(d))
     .map((d) => ({
-      label: d.text.trim(),
+      label: draftText(d),
       choices: d.kind === "free" ? undefined : d.choices.map((c) => c.trim()).filter(Boolean),
       multiple: d.kind === "multi",
     }));

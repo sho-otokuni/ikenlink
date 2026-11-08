@@ -74,7 +74,7 @@ export const MAX_CHOICE_TEXT = 20;
 export const ANSWER_SEPARATOR = String.fromCharCode(10);
 
 /** 新しく募集するときに、最初から入っている質問 */
-export const DEFAULT_QUESTION_TEXT = "あなたの意見を聞かせてください";
+export const DEFAULT_QUESTION_TEXT = "あなたの意見をお聞かせください";
 
 /** 作る画面で選べる質問の形式 */
 export const QUESTION_TYPES: { kind: "free" | "single" | "multi"; label: string }[] = [

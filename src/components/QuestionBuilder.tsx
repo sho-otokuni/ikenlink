@@ -15,15 +15,23 @@ import {
 } from "@/lib/questions";
 import type { Question } from "@/lib/types";
 
-/** 作る画面で書いている途中の質問。key は並べ替え・削除のための目印（保存するときは q1, q2… に付け直す） */
-export type QuestionDraft = { key: string; kind: "free" | "single" | "multi"; text: string; choices: string[] };
+/**
+ * 作る画面で書いている途中の質問。key は並べ替え・削除のための目印（保存するときは q1, q2… に付け直す）。
+ * fallback は、質問文を空のままにしたときに使う文（入力欄には薄い例の文として出す）
+ */
+export type QuestionDraft = { key: string; kind: "free" | "single" | "multi"; text: string; choices: string[]; fallback?: string };
+
+/** 保存するときの質問文（空なら fallback） */
+export function draftText(d: QuestionDraft) {
+  return d.text.trim() || d.fallback || "";
+}
 
 let seq = 0;
 const newKey = () => `d${++seq}`;
 
-/** 新しく募集するときの質問：「あなたの意見を聞かせてください」（自由入力）だけ */
+/** 新しく募集するときの質問：自由入力が1つだけ。文は空にしておき、空のままなら「あなたの意見をお聞かせください」にする */
 export function defaultDrafts(): QuestionDraft[] {
-  return [{ key: newKey(), kind: "free", text: DEFAULT_QUESTION_TEXT, choices: [] }];
+  return [{ key: newKey(), kind: "free", text: "", choices: [], fallback: DEFAULT_QUESTION_TEXT }];
 }
 
 /** 保存してある質問を、書いている途中の形にする（前の版の決まった質問も、文と選択肢を写して直せるようにする） */
@@ -39,7 +47,7 @@ export function draftsFrom(questions: Question[]): QuestionDraft[] {
 export function checkDrafts(drafts: QuestionDraft[]): string | null {
   if (drafts.length === 0) return "質問を1つ以上入れてください";
   for (const [i, d] of drafts.entries()) {
-    if (!d.text.trim()) return `質問 ${i + 1} の文を入れてください`;
+    if (!draftText(d)) return `質問 ${i + 1} の文を入れてください`;
     if (d.kind !== "free") {
       const choices = d.choices.map((c) => c.trim()).filter(Boolean);
       if (choices.length < MIN_CHOICES) return `質問 ${i + 1} の選択肢を${MIN_CHOICES}つ以上入れてください`;
@@ -52,7 +60,7 @@ export function checkDrafts(drafts: QuestionDraft[]): string | null {
 /** 保存する形にする（id は q1, q2…。選択肢は空のものを外す） */
 export function toQuestions(drafts: QuestionDraft[]): Question[] {
   return drafts.map((d, i) => {
-    const text = d.text.trim();
+    const text = draftText(d);
     if (d.kind === "free") return { id: `q${i + 1}`, kind: "free", text };
     return { id: `q${i + 1}`, kind: d.kind, text, choices: d.choices.map((c) => c.trim()).filter(Boolean) };
   });
@@ -114,7 +122,7 @@ export function QuestionBuilder({ drafts, onChange }: { drafts: QuestionDraft[];
               value={d.text}
               onChange={(e) => update(d.key, { text: e.target.value })}
               maxLength={MAX_QUESTION_TEXT}
-              placeholder="例：名前の印象はどうですか？"
+              placeholder={d.fallback ?? "例：名前の印象はどうですか？"}
               aria-label={`質問 ${i + 1} の文`}
               className={inputClass}
             />
