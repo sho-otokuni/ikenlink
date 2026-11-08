@@ -202,7 +202,7 @@ export function NewLinkForm({ editing }: { editing?: EditTarget }) {
         <Field label="タイトル" required count={{ value: title, max: 40 }}>
           <input value={title} onChange={(e) => setTitle(e.target.value)} maxLength={40} placeholder="例：作っている家計簿アプリ、使ってみたい？" aria-label="タイトル" className={inputClass} />
         </Field>
-        <Field label={`画像（${images.length}/${MAX_IMAGES}）`} note="スクショ、手書きのメモ、ラフでも OK">
+        <Field label={`画像（${images.length}/${MAX_IMAGES}）`}>
           <div className="flex flex-wrap items-start gap-2">
             {images.map((src, i) => (
               // 画像の下に、タイトル（任意）を書ける。「これはこの画面です」と説明するため
