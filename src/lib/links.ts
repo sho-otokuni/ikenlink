@@ -298,7 +298,7 @@ export async function updateLink(
   return { ok: true, data: null };
 }
 
-/** 自分の募集の一覧（新しい順）。まだ何も作っていない人は空 */
+/** マイページの一覧（新しい順）。まだ何も作っていない人は空 */
 export async function fetchMyLinks(): Promise<Result<MyLink[]>> {
   if (!isSupabaseConfigured) return { ok: false, message: NOT_READY };
   const uid = await currentUserId();
@@ -323,7 +323,7 @@ export async function fetchMyLinks(): Promise<Result<MyLink[]>> {
   };
 }
 
-/** 自分の募集1本と、届いた意見（新しい順）。自分のものでなければ null */
+/** マイページ1本と、届いた意見（新しい順）。自分のものでなければ null */
 export async function fetchResults(id: string): Promise<Result<Results | null>> {
   if (!isSupabaseConfigured) return { ok: false, message: NOT_READY };
   const uid = await currentUserId();

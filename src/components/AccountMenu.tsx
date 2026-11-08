@@ -8,7 +8,7 @@ import { getAccount, signOut, type Account } from "@/lib/auth";
 /**
  * ヘッダーの右端の、アカウントの入口。
  * ログインしていない人には「ログイン」、ログインしている人には丸いアイコンを出し、
- * 押すと「自分の募集・自分の回答・設定・ログアウト」のメニューを開く
+ * 押すと「マイページ・自分の回答・設定・ログアウト」のメニューを開く
  */
 export function AccountMenu() {
   const [account, setAccount] = useState<Account | null>(null);
@@ -51,7 +51,7 @@ export function AccountMenu() {
 
   const name = account.displayName || account.who || "アカウント";
   async function logout() {
-    if (!window.confirm("ログアウトしますか？もう一度ログインすれば、自分の募集はまた見られます。")) return;
+    if (!window.confirm("ログアウトしますか？もう一度ログインすれば、募集と回答はまた確認できます。")) return;
     await signOut();
     // ログインの状態が変わったので、画面を丸ごと読み直す
     // eslint-disable-next-line @next/next/no-location-assign-relative-destination
@@ -80,8 +80,8 @@ export function AccountMenu() {
           </div>
           <div className="my-1 h-px bg-line" />
           {[
-            { href: "/me", label: "自分の募集" },
-            { href: "/me/answers", label: "自分の回答" },
+            { href: "/me", label: "マイページ" },
+            { href: "/me?tab=answers", label: "自分の回答" },
             { href: "/settings", label: "設定" },
           ].map((m) => (
             <Link key={m.href} role="menuitem" href={m.href} onClick={() => setOpen(false)} className="flex min-h-11 items-center rounded-md px-3 text-sm hover:bg-line">

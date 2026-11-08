@@ -9,7 +9,7 @@ import { setDisplayName } from "@/lib/auth";
  * プロフィール（いまは「表示名」だけ）。
  * 募集を作るときに自動で入り、答える人には「〇〇さんが意見を募集しています」と出る
  */
-export function ProfileCard({ initialName }: { initialName: string }) {
+export function ProfileCard({ initialName, onSaved }: { initialName: string; /** 保存できたときに、新しい名前を知らせる */ onSaved?: (name: string) => void }) {
   const [name, setName] = useState(initialName);
   const [saved, setSaved] = useState(initialName);
   const [busy, setBusy] = useState(false);
@@ -24,6 +24,7 @@ export function ProfileCard({ initialName }: { initialName: string }) {
     setBusy(false);
     if (error) return setMessage({ ok: false, text: error });
     setSaved(name.trim());
+    onSaved?.(name.trim());
     setMessage({ ok: true, text: "保存しました。次に募集を作るときから、この名前が入ります。" });
   }
 

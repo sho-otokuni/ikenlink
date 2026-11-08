@@ -13,7 +13,7 @@ export default function MyAnswersPage() {
       <Header current="/me" />
       <main className={`${PAGE_WIDTH} flex-1 px-3 pb-12 pt-3 lg:px-8 xl:px-12 lg:pt-5`}>
         <Link href="/me" className="flex min-h-11 items-center self-start text-xs font-bold text-muted hover:text-ink">
-          ‹ 自分の募集
+          ‹ マイページ
         </Link>
         <h1 className="mb-3 font-round text-2xl font-bold lg:text-[28px]">自分の回答</h1>
         <MyAnswers />

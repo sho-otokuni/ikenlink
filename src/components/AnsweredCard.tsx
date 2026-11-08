@@ -1,4 +1,4 @@
-/** ほかの募集に答えた数（3件以上で、自分の募集のカードに「よく答えている人」の印が付く） */
+/** ほかの募集に答えた数（3件以上で、マイページのカードに「よく答えている人」の印が付く） */
 export function AnsweredCard({ count, title, body, children }: { count: number; title: string; body: string; children?: React.ReactNode }) {
   return (
     <div className="flex items-center gap-3 rounded-lg border border-line bg-card p-3">

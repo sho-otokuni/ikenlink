@@ -60,7 +60,7 @@ export default function GuidePage() {
         <ul>
           <li>
             <Link href="/me" className="font-bold text-coral underline-offset-2 hover:underline">
-              自分の募集
+              マイページ
             </Link>
             から、作った募集と届いた意見を見られます。
           </li>
@@ -83,7 +83,7 @@ export default function GuidePage() {
           <li>
             他の端末から意見を確認するときは、募集ごとの「管理用 URL」をご利用ください。この URL を知っている人は意見を読めるため、第三者には共有しないでください。
           </li>
-          <li>Google・X・GitHub でアカウントを作ると、スマホでもパソコンでも、ログインすれば自分の募集を見られます。登録する前に作った募集や、答えた数もそのまま引き継ぎます。</li>
+          <li>Google・X・GitHub でアカウントを作ると、スマホでもパソコンでも、ログインすればマイページを見られます。登録する前に作った募集や、答えた数もそのまま引き継ぎます。</li>
           <li>アカウントを作ると、これまでに答えた意見を「自分の回答」で見返せます。</li>
           <li>「設定」のプロフィールで表示名を決めておくと、募集するときに自動で入ります。</li>
         </ul>

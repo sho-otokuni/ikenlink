@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import { NewLinkForm, type EditTarget } from "@/components/NewLinkForm";
 import { fetchResults } from "@/lib/links";
 
-/** 作った募集を読み込んで、直すフォームを出す。自分の募集でなければ直せない */
+/** 作った募集を読み込んで、直すフォームを出す。マイページでなければ直せない */
 export function EditLink({ id }: { id: string }) {
   // undefined＝読み込み中／null＝見つからない（自分のものでない）
   const [target, setTarget] = useState<EditTarget | null | undefined>(undefined);
@@ -34,7 +34,7 @@ export function EditLink({ id }: { id: string }) {
       <div className="mt-4 flex flex-col items-start gap-3">
         <p className="text-sm leading-relaxed">この募集は直せません。作ったブラウザで開くか、作ったアカウントでログインしてください。</p>
         <Link href="/me" className="flex min-h-11 items-center font-bold text-coral">
-          自分の募集へ
+          マイページへ
         </Link>
       </div>
     );

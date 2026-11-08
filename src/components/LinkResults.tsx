@@ -44,7 +44,7 @@ export function LinkResults({ id, created, saved = false, token }: { id: string;
             ? "この募集は見つかりませんでした。管理用 URL が途中で切れていないか、ご確認ください。"
             : "この募集は見つかりませんでした。別の端末やブラウザで作成した場合は、作成時の「管理用 URL」から開いてください。"}
         </p>
-        <Link href="/me" className="font-bold text-coral">自分の募集へ</Link>
+        <Link href="/me" className="font-bold text-coral">マイページへ</Link>
       </div>
     );
   }
@@ -334,7 +334,7 @@ function AdminUrlCard({ id, token, highlight }: { id: string; token: string; hig
   const origin = useOrigin();
   const [copied, setCopied] = useState(false);
   const adminUrl = `${origin}/me/${id}?k=${token}`;
-  // アカウントを作っている人は、自分の募集にいつでも出るので、この URL を残しておかなくてよい
+  // アカウントを作っている人は、マイページにいつでも出るので、この URL を残しておかなくてよい
   const [member, setMember] = useState<boolean | null>(null);
 
   useEffect(() => {
@@ -364,7 +364,7 @@ function AdminUrlCard({ id, token, highlight }: { id: string; token: string; hig
         <p className="text-xs leading-relaxed">
           この募集は
           <Link href="/me" className="font-bold underline underline-offset-2">
-            自分の募集
+            マイページ
           </Link>
           から確認できます。他の端末でも、同じアカウントでログインすれば確認できます。
         </p>
@@ -396,7 +396,7 @@ function AdminUrlCard({ id, token, highlight }: { id: string; token: string; hig
         <Link href="/signup" className="font-bold text-coral underline-offset-2 hover:underline">
           アカウント登録
         </Link>
-        をすると、URL を保存しなくても「自分の募集」から確認できます。
+        をすると、URL を保存しなくても「マイページ」から確認できます。
       </p>
     </section>
   );

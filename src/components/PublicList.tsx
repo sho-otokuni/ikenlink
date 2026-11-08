@@ -39,7 +39,7 @@ function AnswerSummary() {
         件
       </span>
       {/* 登録なしの人は、開いた先で登録をすすめる（自分の回答を見返せるのは、登録している人だけ） */}
-      <Link href="/me/answers" className="flex min-h-11 items-center text-xs font-bold text-coral lg:min-h-9 lg:text-[13px]">
+      <Link href="/me?tab=answers" className="flex min-h-11 items-center text-xs font-bold text-coral lg:min-h-9 lg:text-[13px]">
         自分の回答を見る ›
       </Link>
     </div>
