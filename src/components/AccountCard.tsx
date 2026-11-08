@@ -9,7 +9,7 @@ import { continueWith, continueWithGoogle, LOGIN_PROVIDERS, signOut, switchTo, s
 /**
  * 「アカウント」のカード。
  * 登録済みの人にはログイン中のアカウントとログアウトを出す。
- * 登録なしで使っている人には、自分のリンクの画面（compact）では登録の画面への入口を、登録の画面ではログインのボタンを出す
+ * 登録なしで使っている人には、自分の募集の画面（compact）では登録の画面への入口を、登録の画面ではログインのボタンを出す
  */
 export function AccountCard({
   account,
@@ -20,7 +20,7 @@ export function AccountCard({
 }: {
   /** signup＝登録の画面（いまの利用者にアカウントをつなぐ）／login＝ログインの画面（登録済みのアカウントに入る） */
   mode?: "signup" | "login";
-  /** 自分のリンクの画面で使う：ボタンを並べず、登録の画面への入口だけを出す */
+  /** 自分の募集の画面で使う：ボタンを並べず、登録の画面への入口だけを出す */
   compact?: boolean;
   account: Account;
   /** ログインから戻ってきたときの失敗（already＝そのアカウントは別の端末ですでに登録済み） */
@@ -34,12 +34,12 @@ export function AccountCard({
   const [googleAlready, setGoogleAlready] = useState(false);
   const already: LoginError = googleAlready ? { kind: "already", provider: "google" } : loginError;
 
-  /** Google の公式のボタンで続ける。うまくいったら、画面を読み直して自分のリンクを出し直す */
+  /** Google の公式のボタンで続ける。うまくいったら、画面を読み直して自分の募集を出し直す */
   async function google(token: string, nonce: string) {
     setBusy(true);
     setError(null);
     const r = await continueWithGoogle(token, nonce);
-    // うまくいったら、自分のリンクの画面で出し直す
+    // うまくいったら、自分の募集の画面で出し直す
     // ログインの状態が変わったので、画面を丸ごと読み直す（前の画面の中身を残さない）
     // eslint-disable-next-line @next/next/no-location-assign-relative-destination
     if (r === "ok") return window.location.assign("/me");
@@ -53,7 +53,7 @@ export function AccountCard({
     setBusy(true);
     setError(null);
     const message = await switchToGoogle(token, nonce);
-    // この端末の募集は、自分のリンクの画面を開いたときに移す
+    // この端末の募集は、自分の募集の画面を開いたときに移す
     // ログインの状態が変わったので、画面を丸ごと読み直す（前の画面の中身を残さない）
     // eslint-disable-next-line @next/next/no-location-assign-relative-destination
     if (!message) return window.location.assign("/me");
@@ -73,7 +73,7 @@ export function AccountCard({
   }
 
   async function logout() {
-    if (!window.confirm("ログアウトしますか？もう一度ログインすれば、自分のリンクはまた見られます。")) return;
+    if (!window.confirm("ログアウトしますか？もう一度ログインすれば、自分の募集はまた見られます。")) return;
     await signOut();
     window.location.reload();
   }
@@ -116,7 +116,7 @@ export function AccountCard({
     );
   }
 
-  // 自分のリンクの画面では、登録の画面への入口だけ（コーラルの枠で、ほかのカードと分ける）
+  // 自分の募集の画面では、登録の画面への入口だけ（コーラルの枠で、ほかのカードと分ける）
   if (compact) {
     return (
       <div className="flex flex-col gap-1.5">
@@ -173,7 +173,7 @@ export function AccountCard({
   return (
     <section className="flex flex-col gap-3 rounded-lg border border-line bg-card p-4 lg:p-5">
       <p className="text-sm leading-relaxed text-muted">
-        {account.state === "guest" ? "現在の募集と回答数は、登録したアカウントに引き継がれます。" : "登録済みのアカウントでログインすると、自分のリンクを確認できます。"}
+        {account.state === "guest" ? "現在の募集と回答数は、登録したアカウントに引き継がれます。" : "登録済みのアカウントでログインすると、自分の募集を確認できます。"}
       </p>
       <div className="flex flex-col gap-2">
         {LOGIN_PROVIDERS.map((p) => {

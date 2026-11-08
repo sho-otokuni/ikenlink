@@ -2,7 +2,7 @@ import { initialHash, isSupabaseConfigured, supabase } from "@/lib/supabase";
 
 /**
  * アカウント登録・ログイン（Google・X・GitHub）。
- * 登録しなくても使える（登録なしの「匿名ログイン」）。登録すると、どの端末からでも自分のリンクを見られる。
+ * 登録しなくても使える（登録なしの「匿名ログイン」）。登録すると、どの端末からでも自分の募集を見られる。
  *
  * - 登録なしで使っている人が登録する：いまの利用者に Google などをつなぐ（作った募集も答えた数もそのまま）
  * - そのアカウントが別の端末ですでに登録済みだった：ログインし直す。この端末で作った募集は、合言葉で移す
@@ -58,7 +58,7 @@ export async function setDisplayName(name: string): Promise<string | null> {
   return error ? "保存できませんでした。通信環境を確かめて、もう一度お試しください" : null;
 }
 
-/** ログインから戻ってくる場所（自分のリンクの画面） */
+/** ログインから戻ってくる場所（自分の募集の画面） */
 function returnUrl() {
   return `${window.location.origin}/me`;
 }

@@ -5,16 +5,16 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 
 import { AccountCard } from "@/components/AccountCard";
-import { AnsweredCard } from "@/components/AnsweredCard";
-import { ProfileCard } from "@/components/ProfileCard";
-import { DeleteAccount } from "@/components/DeleteAccount";
 import { finishSwitch, getAccount, readLoginError, type Account, type LoginError } from "@/lib/auth";
-import { fetchMyAnswerCount, fetchMyLinks, type MyLink } from "@/lib/links";
+import { fetchMyLinks, type MyLink } from "@/lib/links";
 import { isClosed } from "@/lib/questions";
 
+/**
+ * 自分の募集の一覧。プロフィール・アカウント・データの削除は「設定」の画面にある。
+ * ログインから戻ってくるのはこの画面なので、ログインの失敗や、募集を移した知らせはここに出す
+ */
 export function MyLinks() {
   const [links, setLinks] = useState<MyLink[] | null>(null);
-  const [answered, setAnswered] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [account, setAccount] = useState<Account | null>(null);
   const [loginError, setLoginError] = useState<LoginError>(null);
@@ -26,12 +26,11 @@ export function MyLinks() {
       // ログインから戻ってきたときは、失敗の知らせを読み、ログインし直した人にはこの端末の募集を移してから読む
       const failure = readLoginError();
       const movedCount = await finishSwitch();
-      const [acc, r, n] = await Promise.all([getAccount(), fetchMyLinks(), fetchMyAnswerCount()]);
+      const [acc, r] = await Promise.all([getAccount(), fetchMyLinks()]);
       if (!alive) return;
       setLoginError(failure);
       setMoved(movedCount);
       setAccount(acc);
-      setAnswered(n);
       if (r.ok) setLinks(r.data);
       else setError(r.message);
     })();
@@ -43,30 +42,15 @@ export function MyLinks() {
   return (
     <div className="flex flex-col gap-3">
       <div className="flex items-center justify-between gap-3">
-        <h1 className="font-round text-2xl font-bold">自分のリンク</h1>
+        <h1 className="font-round text-2xl font-bold">自分の募集</h1>
         {/* パソコンでは上の帯に「意見を募集する」があるので、スマホのときだけ出す */}
         <Link href="/new" className="flex min-h-11 items-center rounded-lg bg-coral px-4 text-[13px] font-bold text-night lg:hidden">
           ＋ 作る
         </Link>
       </div>
-      {account && <AccountCard account={account} loginError={loginError} moved={moved} compact />}
-      {/* まだ何も使っていない人は、名前を残す先（利用者）がないので、初めて募集したときに保存する */}
-      {account && account.state !== "none" && <ProfileCard initialName={account.displayName} />}
-      {answered !== null && (
-        <AnsweredCard count={answered} title="回答した数" body="3件以上答えると、公開中の募集のカードに「よく答えている人」の印が付きます。">
-          <span className="flex flex-wrap gap-x-4">
-            <Link href="/list" className="flex min-h-11 items-center text-[13px] font-bold text-coral">
-              募集に答えに行く ›
-            </Link>
-            {/* 答えた内容を見返せるのは、アカウント登録している人だけ */}
-            {account?.state === "member" && (
-              <Link href="/me/answers" className="flex min-h-11 items-center text-[13px] font-bold text-coral">
-                自分の回答を見る ›
-              </Link>
-            )}
-          </span>
-        </AnsweredCard>
-      )}
+      {moved > 0 && <p className="rounded-lg border border-leaf bg-card px-3 py-2 text-sm font-bold">このブラウザで作成した募集を {moved} 件、アカウントに移しました。</p>}
+      {/* 登録していない人には登録・ログインの入口を、ログインに失敗したときはその知らせを出す */}
+      {account && (account.state !== "member" || loginError) && <AccountCard account={account} loginError={loginError} moved={0} compact />}
       {error && <p role="alert" className="text-sm font-bold text-coral">{error}</p>}
       {!links && !error && <div className="h-16 rounded-lg bg-line" aria-busy />}
       {links?.length === 0 && <p className="text-sm text-muted">まだ募集はありません。画像1枚からでも、意見を集められます。</p>}
@@ -99,7 +83,7 @@ export function MyLinks() {
       </ul>
       <p className="text-xs leading-relaxed text-muted">
         {account?.state === "member"
-          ? "ログインしたアカウントで作った募集が並びます。"
+          ? "ログイン中のアカウントで作成した募集が並びます。"
           : (
               <>
                 アカウント登録していない場合、このブラウザで作成した募集だけが並びます。
@@ -108,8 +92,9 @@ export function MyLinks() {
               </>
             )}
       </p>
-      {/* いちばん下に、目立たないように置く */}
-      {account && <DeleteAccount account={account} />}
+      <Link href="/settings" className="flex min-h-11 items-center self-start text-xs font-bold text-muted hover:text-ink">
+        設定（表示名・アカウント・データの削除） ›
+      </Link>
     </div>
   );
 }

@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { Header } from "@/components/Header";
 import { MyLinks } from "@/components/MyLinks";
 
-export const metadata: Metadata = { title: "自分のリンク｜意見リンク", robots: { index: false, follow: false } };
+export const metadata: Metadata = { title: "自分の募集｜意見リンク", robots: { index: false, follow: false } };
 
 /** 自分の募集の一覧 */
 export default function MyLinksPage() {

@@ -86,7 +86,7 @@ function AlreadyIn({ account }: { account: Extract<Account, { state: "member" }>
       <b className="text-sm">ログイン済みです</b>
       <p className="text-xs text-muted">ログイン中のアカウント：{account.who ?? "アカウント"}</p>
       <Link href="/me" className="flex min-h-11 items-center rounded-lg bg-coral px-5 text-sm font-bold text-night">
-        自分のリンクへ
+        自分の募集へ
       </Link>
     </div>
   );
@@ -104,7 +104,7 @@ function useAccount() {
   return account;
 }
 
-/** アカウント登録の画面の中身。登録済みの人には、自分のリンクへの案内を出す */
+/** アカウント登録の画面の中身。登録済みの人には、自分の募集への案内を出す */
 export function SignupPanel() {
   const account = useAccount();
   if (!account) return <div className="h-40 rounded-lg bg-line" aria-busy />;
@@ -124,7 +124,7 @@ export function SignupPanel() {
   );
 }
 
-/** ログインの画面の中身。登録済みの人には、自分のリンクへの案内を出す */
+/** ログインの画面の中身。登録済みの人には、自分の募集への案内を出す */
 export function LoginPanel() {
   const account = useAccount();
   if (!account) return <div className="h-40 rounded-lg bg-line" aria-busy />;

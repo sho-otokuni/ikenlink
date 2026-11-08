@@ -29,7 +29,6 @@ export function ProfileCard({ initialName }: { initialName: string }) {
 
   return (
     <section className="flex flex-col gap-2 rounded-lg border border-line bg-card p-3">
-      <h2 className="text-sm font-bold">プロフィール</h2>
       <label className="flex flex-col gap-1">
         <span className="flex items-baseline text-xs font-bold">
           表示名

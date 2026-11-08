@@ -44,7 +44,7 @@ export function LinkResults({ id, created, saved = false, token }: { id: string;
             ? "この募集は見つかりませんでした。自分専用の URL が途中で切れていないか、確かめてください。"
             : "この募集は見つかりませんでした。別の端末やブラウザで作ったときは、募集を作ったときの「自分専用の URL」から開いてください。"}
         </p>
-        <Link href="/me" className="font-bold text-coral">自分のリンクへ</Link>
+        <Link href="/me" className="font-bold text-coral">自分の募集へ</Link>
       </div>
     );
   }
@@ -333,7 +333,7 @@ function AdminUrlCard({ id, token, highlight }: { id: string; token: string; hig
   const origin = useOrigin();
   const [copied, setCopied] = useState(false);
   const adminUrl = `${origin}/me/${id}?k=${token}`;
-  // アカウントを作っている人は、自分のリンクにいつでも出るので、この URL を残しておかなくてよい
+  // アカウントを作っている人は、自分の募集にいつでも出るので、この URL を残しておかなくてよい
   const [member, setMember] = useState<boolean | null>(null);
 
   useEffect(() => {
@@ -363,7 +363,7 @@ function AdminUrlCard({ id, token, highlight }: { id: string; token: string; hig
         <p className="text-xs leading-relaxed">
           ログインしているので、この募集は
           <Link href="/me" className="font-bold underline underline-offset-2">
-            自分のリンク
+            自分の募集
           </Link>
           にいつでも出ます。ほかのスマホやパソコンでも、ログインすれば見られます。下の URL を残しておく必要はありません。
         </p>
@@ -395,7 +395,7 @@ function AdminUrlCard({ id, token, highlight }: { id: string; token: string; hig
         <Link href="/me" className="font-bold text-coral underline-offset-2 hover:underline">
           アカウントを作る
         </Link>
-        と、この URL を残さなくても、自分のリンクからいつでも見られます。
+        と、この URL を残さなくても、自分の募集からいつでも見られます。
       </p>
     </section>
   );

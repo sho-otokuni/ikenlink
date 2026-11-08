@@ -34,7 +34,7 @@ export function EditLink({ id }: { id: string }) {
       <div className="mt-4 flex flex-col items-start gap-3">
         <p className="text-sm leading-relaxed">この募集は直せません。作ったブラウザで開くか、作ったアカウントでログインしてください。</p>
         <Link href="/me" className="flex min-h-11 items-center font-bold text-coral">
-          自分のリンクへ
+          自分の募集へ
         </Link>
       </div>
     );
