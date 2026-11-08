@@ -148,7 +148,7 @@ export function AccountCard({
             ? "登録済みのアカウントでログインします。このブラウザで投稿した募集と回答数は、ログインしたアカウントに引き継がれます。"
             : "登録済みのアカウントでログインします。"}
         </p>
-        <div className="flex flex-col gap-2 sm:flex-row">
+        <div className="flex flex-col gap-2">
           {LOGIN_PROVIDERS.map((p) => {
             const button = (
               <button
@@ -169,19 +169,13 @@ export function AccountCard({
     );
   }
 
-  // 登録の画面：ここだけは「アカウントを作る」案内なので、コーラルの枠と印でほかのカードと分ける
+  // 登録の画面：よくあるサービスと同じく、短い説明とボタンだけにする（見出しは画面の「アカウント登録」）
   return (
-    <section className="flex flex-col gap-2 rounded-lg border-2 border-coral bg-card p-3 lg:p-4">
-      <span className="self-start rounded-full bg-coral px-2.5 py-0.5 text-[11px] font-bold text-night">
-        {account.state === "guest" ? "アカウント登録（無料）" : "ログイン"}
-      </span>
-      <b className="font-round text-base lg:text-lg">{account.state === "guest" ? "集まった意見を、スマホでもパソコンでも。" : "登録済みのアカウントでログイン"}</b>
-      <p className="text-xs leading-relaxed text-muted">
-        {account.state === "guest"
-          ? "現在は登録せずにご利用中です。投稿した募集は、このブラウザにのみ保存されています。アカウントを登録すると、他の端末からもログインして確認できます。現在の募集と回答数は、そのまま引き継がれます。"
-          : "登録済みのアカウントでログインすると、自分のリンクを確認できます。"}
+    <section className="flex flex-col gap-3 rounded-lg border border-line bg-card p-4 lg:p-5">
+      <p className="text-sm leading-relaxed text-muted">
+        {account.state === "guest" ? "現在の募集と回答数は、登録したアカウントに引き継がれます。" : "登録済みのアカウントでログインすると、自分のリンクを確認できます。"}
       </p>
-      <div className="flex flex-col gap-2 sm:flex-row">
+      <div className="flex flex-col gap-2">
         {LOGIN_PROVIDERS.map((p) => {
           const button = (
             <button
@@ -200,6 +194,20 @@ export function AccountCard({
       </div>
       {loginError?.kind === "failed" && <p role="alert" className="text-sm font-bold text-coral">ログインできませんでした。もう一度お試しください。</p>}
       {error && <p role="alert" className="text-sm font-bold text-coral">{error}</p>}
+      <Consent />
     </section>
+  );
+}
+
+/** 登録・ログインのボタンの下に小さく出す、利用規約とプライバシーポリシーへの同意 */
+function Consent() {
+  return (
+    <p className="text-[11px] leading-relaxed text-muted">
+      登録すると、
+      <Link href="/terms" className="underline underline-offset-2">利用規約</Link>
+      および
+      <Link href="/privacy" className="underline underline-offset-2">プライバシーポリシー</Link>
+      に同意したものとみなされます。
+    </p>
   );
 }
