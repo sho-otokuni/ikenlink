@@ -209,7 +209,7 @@ export function NewLinkForm({ editing }: { editing?: EditTarget }) {
               <div key={src.slice(-40) + i} className="flex w-36 flex-col gap-1 lg:w-44">
                 <div className="relative h-24 w-full overflow-hidden rounded-lg border border-line bg-card lg:h-28">
                   {/* eslint-disable-next-line @next/next/no-img-element -- 端末の中の画像（data URL）なので、Next.js の画像変換は使えない */}
-                  <img src={src} alt={captions[i] || `画像 ${i + 1}`} className="h-full w-full object-cover" />
+                  <img src={src} alt={captions[i] || `画像 ${i + 1}`} className="h-full w-full object-contain" />
                   <button
                     type="button"
                     onClick={() => {
