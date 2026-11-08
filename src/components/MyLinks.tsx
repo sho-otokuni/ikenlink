@@ -53,7 +53,7 @@ export function MyLinks() {
       {account && (account.state !== "member" || loginError) && <AccountCard account={account} loginError={loginError} moved={0} compact />}
       {error && <p role="alert" className="text-sm font-bold text-coral">{error}</p>}
       {!links && !error && <div className="h-16 rounded-lg bg-line" aria-busy />}
-      {links?.length === 0 && <p className="text-sm text-muted">まだ募集はありません。画像1枚からでも、意見を集められます。</p>}
+      {links?.length === 0 && <p className="text-sm text-muted">まだ募集はありません。</p>}
       <ul className="flex flex-col gap-2">
         {links?.map((l) => (
           <li key={l.id}>
