@@ -83,7 +83,7 @@ export function LinkPreview({
           <div key={q.label + i} className="flex w-full flex-col gap-1.5">
             <b className="text-[13px]">
               {q.label}
-              {q.multiple && <span className="ml-1 text-[11px] font-normal text-muted">（複数選べます）</span>}
+              {q.multiple && <span className="ml-1 text-[11px] font-normal text-muted">（複数選択可）</span>}
             </b>
             {q.choices ? (
               <div className="flex flex-wrap gap-1.5">

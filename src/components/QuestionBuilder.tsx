@@ -69,7 +69,7 @@ export function toQuestions(drafts: QuestionDraft[]): Question[] {
 const inputClass = "min-h-11 w-full rounded-lg border border-line bg-card px-3 text-base outline-none focus:border-coral";
 
 /**
- * 聞きたいことを作る。質問ごとに、形式（自由入力・選択式（1つ選ぶ）・選択式（複数選べる））を選び、
+ * 聞きたいことを作る。質問ごとに、形式（自由入力・選択式（1つ選択）・選択式（複数選択））を選び、
  * 選択式なら選択肢を自分で書く。よく使われる質問は、押すと中身が入った状態で足される
  */
 export function QuestionBuilder({ drafts, onChange }: { drafts: QuestionDraft[]; onChange: (next: QuestionDraft[]) => void }) {
@@ -133,7 +133,7 @@ export function QuestionBuilder({ drafts, onChange }: { drafts: QuestionDraft[];
               <span className="text-xs font-bold">
                 選択肢
                 <span className="ml-1 font-normal text-muted">
-                  （{MIN_CHOICES}〜{MAX_CHOICES}個・{d.kind === "single" ? "答える人は1つ選びます" : "答える人は複数選べます"}）
+                  （{MIN_CHOICES}〜{MAX_CHOICES}個・{d.kind === "single" ? "1つ選択" : "複数選択可"}）
                 </span>
               </span>
               {d.choices.map((c, k) => (
@@ -185,7 +185,7 @@ export function QuestionBuilder({ drafts, onChange }: { drafts: QuestionDraft[];
           </button>
           {presets.length > 0 && (
             <div className="flex flex-col gap-1.5">
-              <span className="text-xs text-muted">よく使われる質問（押すと追加されます。追加したあとで直せます）</span>
+              <span className="text-xs text-muted">よく使われる質問</span>
               <div className="flex flex-wrap gap-1.5">
                 {presets.map((p) => (
                   <button

@@ -172,9 +172,7 @@ export function AccountCard({
   // 登録の画面：よくあるサービスと同じく、短い説明とボタンだけにする（見出しは画面の「アカウント登録」）
   return (
     <section className="flex flex-col gap-3 rounded-lg border border-line bg-card p-4 lg:p-5">
-      <p className="text-sm leading-relaxed text-muted">
-        {account.state === "guest" ? "現在の募集と回答数は、登録したアカウントに引き継がれます。" : "登録済みのアカウントでログインすると、自分の募集を確認できます。"}
-      </p>
+      {account.state === "guest" && <p className="text-sm leading-relaxed text-muted">現在の募集と回答数は、登録したアカウントに引き継がれます。</p>}
       <div className="flex flex-col gap-2">
         {LOGIN_PROVIDERS.map((p) => {
           const button = (

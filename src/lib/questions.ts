@@ -79,8 +79,8 @@ export const DEFAULT_QUESTION_TEXT = "あなたの意見をお聞かせくださ
 /** 作る画面で選べる質問の形式 */
 export const QUESTION_TYPES: { kind: "free" | "single" | "multi"; label: string }[] = [
   { kind: "free", label: "自由入力" },
-  { kind: "single", label: "選択式（1つ選ぶ）" },
-  { kind: "multi", label: "選択式（複数選べる）" },
+  { kind: "single", label: "選択式（1つ選択）" },
+  { kind: "multi", label: "選択式（複数選択）" },
 ];
 
 /** よく使われる質問。押すと、この中身が入った状態で質問が足される（足したあとで直せる） */

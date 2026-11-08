@@ -74,8 +74,9 @@ export function MyLinks() {
                 </span>
               </span>
               <span className="flex shrink-0 items-baseline gap-1 whitespace-nowrap">
+                <span className="text-xs text-muted">意見の数</span>
                 <span className="font-round text-2xl font-bold leading-none tabular-nums">{l.responseCount}</span>
-                <span className="text-xs text-muted">件の意見</span>
+                <span className="text-xs text-muted">件</span>
               </span>
             </Link>
           </li>
@@ -88,7 +89,7 @@ export function MyLinks() {
               <>
                 アカウント登録していない場合、このブラウザで作成した募集だけが並びます。
                 <br />
-                アカウント登録しないまま意見を見るときは、募集ごとの「自分専用のURL」をご利用ください。
+                アカウント登録しないまま意見を見るときは、募集ごとの「管理用 URL」をご利用ください。
               </>
             )}
       </p>

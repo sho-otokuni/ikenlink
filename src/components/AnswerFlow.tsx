@@ -132,8 +132,8 @@ function About({ link }: { link: FeedbackLink }) {
 }
 
 /**
- * 質問1つ分の答える欄。自由入力は文章、選択式（1つ選ぶ）は押した1つ、
- * 選択式（複数選べる）は押したものすべて（選択肢の並び順で、改行でつないで1つの答えにする）
+ * 質問1つ分の答える欄。自由入力は文章、選択式（1つ選択）は押した1つ、
+ * 選択式（複数選択）は押したものすべて（選択肢の並び順で、改行でつないで1つの答えにする）
  */
 function QuestionField({ question, value, onChange }: { question: Question; value: string; onChange: (v: string) => void }) {
   const label = questionLabel(question);
@@ -149,7 +149,7 @@ function QuestionField({ question, value, onChange }: { question: Question; valu
     <fieldset className="flex flex-col">
       <legend className="mb-1.5 text-[15px] font-bold leading-snug">
         {label}
-        {multiple && <span className="ml-1.5 text-xs font-normal text-muted">（複数選べます）</span>}
+        {multiple && <span className="ml-1.5 text-xs font-normal text-muted">（複数選択可）</span>}
       </legend>
       {choices ? (
         <div className="flex flex-wrap gap-2">

@@ -41,8 +41,8 @@ export function LinkResults({ id, created, saved = false, token }: { id: string;
       <div className="flex flex-col items-start gap-4">
         <p>
           {token
-            ? "この募集は見つかりませんでした。自分専用の URL が途中で切れていないか、確かめてください。"
-            : "この募集は見つかりませんでした。別の端末やブラウザで作ったときは、募集を作ったときの「自分専用の URL」から開いてください。"}
+            ? "この募集は見つかりませんでした。管理用 URL が途中で切れていないか、ご確認ください。"
+            : "この募集は見つかりませんでした。別の端末やブラウザで作成した場合は、作成時の「管理用 URL」から開いてください。"}
         </p>
         <Link href="/me" className="font-bold text-coral">自分の募集へ</Link>
       </div>
@@ -79,13 +79,14 @@ export function LinkResults({ id, created, saved = false, token }: { id: string;
           </Link>
         )}
         <span className="flex items-baseline gap-1 whitespace-nowrap">
+          <span className="text-xs text-muted lg:text-sm">意見の数</span>
           <span className="font-round text-[26px] font-bold leading-none tabular-nums lg:text-[40px]">{count}</span>
-          <span className="text-xs text-muted lg:text-sm">件の意見</span>
+          <span className="text-xs text-muted lg:text-sm">件</span>
         </span>
       </div>
 
       {token && (
-        <p className="rounded-lg bg-leaf-tint px-3 py-2 text-sm leading-relaxed">自分専用の URL で開いています。この URL は、ほかの人に見せないでください。</p>
+        <p className="rounded-lg bg-leaf-tint px-3 py-2 text-sm leading-relaxed">管理用 URL で開いています。この URL は第三者に共有しないでください。</p>
       )}
 
       {/*
@@ -359,22 +360,22 @@ function AdminUrlCard({ id, token, highlight }: { id: string; token: string; hig
   if (member) {
     return (
       <section className="flex flex-col gap-1.5 rounded-lg border border-leaf bg-card p-3">
-        <h2 className="text-sm font-bold">この募集は、アカウントに保存されています</h2>
+        <h2 className="text-sm font-bold">アカウントに保存済み</h2>
         <p className="text-xs leading-relaxed">
-          ログインしているので、この募集は
+          この募集は
           <Link href="/me" className="font-bold underline underline-offset-2">
             自分の募集
           </Link>
-          にいつでも出ます。ほかのスマホやパソコンでも、ログインすれば見られます。下の URL を残しておく必要はありません。
+          から確認できます。他の端末でも、同じアカウントでログインすれば確認できます。
         </p>
         <details className="text-xs">
-          <summary className="flex min-h-11 cursor-pointer items-center font-bold text-muted">ログインせずに見る、自分専用の URL</summary>
+          <summary className="flex min-h-11 cursor-pointer items-center font-bold text-muted">管理用 URL（ログインせずに確認する場合）</summary>
           <div className="flex flex-col gap-1.5">
             <p className="leading-relaxed">
-              ログインしないで意見を見たいときに使えます。<strong>人には送らないでください。</strong>
+              ログインせずに、届いた意見を確認できる URL です。<strong>第三者には共有しないでください。</strong>
             </p>
             <button type="button" onClick={copy} className="min-h-11 rounded-lg border border-line bg-card px-4 text-[13px] font-bold">
-              {copied ? "コピーしました" : "自分専用の URL をコピー"}
+              {copied ? "コピーしました" : "管理用 URL をコピー"}
             </button>
           </div>
         </details>
@@ -384,18 +385,18 @@ function AdminUrlCard({ id, token, highlight }: { id: string; token: string; hig
 
   return (
     <section className={`flex flex-col gap-1.5 rounded-lg border p-3 ${highlight ? "border-peach bg-card" : "border-line bg-card"}`}>
-      <h2 className="text-sm font-bold">意見を見るための、自分専用の URL</h2>
+      <h2 className="text-sm font-bold">管理用 URL</h2>
       <p className="text-xs leading-relaxed">
-        ほかの端末やブラウザから意見を見るときに使います。メモやブックマークに残しておいてください。<strong>人には送らないでください。</strong>
+        他の端末やブラウザから、届いた意見を確認するための URL です。ブックマークなどに保存してください。<strong>第三者には共有しないでください。</strong>
       </p>
       <button type="button" onClick={copy} className="min-h-11 rounded-lg border border-line bg-card px-4 text-[13px] font-bold">
-        {copied ? "コピーしました" : "自分専用の URL をコピー"}
+        {copied ? "コピーしました" : "管理用 URL をコピー"}
       </button>
       <p className="text-xs leading-relaxed text-muted">
-        <Link href="/me" className="font-bold text-coral underline-offset-2 hover:underline">
-          アカウントを作る
+        <Link href="/signup" className="font-bold text-coral underline-offset-2 hover:underline">
+          アカウント登録
         </Link>
-        と、この URL を残さなくても、自分の募集からいつでも見られます。
+        をすると、URL を保存しなくても「自分の募集」から確認できます。
       </p>
     </section>
   );
@@ -468,7 +469,7 @@ function QuestionResult({ question, responses }: { question: Question; responses
       <h2 className="text-sm font-bold leading-snug lg:text-base">
         {label}
         <span className="ml-1.5 text-[11px] font-normal text-muted">
-          {perPerson.length}件{multiple && "（複数選べる質問。割合は回答した人数に対して）"}
+          {perPerson.length}件{multiple && "（複数選択可・割合は回答者数に対する値）"}
         </span>
       </h2>
       {choices ? (

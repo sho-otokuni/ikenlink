@@ -327,20 +327,19 @@ export function NewLinkForm({ editing }: { editing?: EditTarget }) {
         {deadline === "date" && (
           <input type="date" value={deadlineDate} min={today ?? undefined} onChange={(e) => setDeadlineDate(e.target.value)} aria-label="締め切りの日付" className={inputClass} />
         )}
-        <p className="text-xs leading-relaxed text-muted">
-          {closesAt ? `${formatDay(closesAt)} 23:59 まで。` : deadline === "none" ? "締め切りなし。" : ""}
-          過ぎると答えられなくなり、一覧からも外れます。あとから変えられます。
-        </p>
+        {/* 締め切りを選んだときだけ、締切日と時刻を出す（「なし」のときは何も出さない） */}
+        {closesAt && (
+          <p className="text-xs text-muted">
+            締切日：{formatDay(closesAt)}
+            {closesAt.toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" })}
+          </p>
+        )}
       </Section>
 
       <Section title="公開範囲">
         <div role="radiogroup" aria-label="公開範囲" className="flex flex-col gap-2 lg:grid lg:grid-cols-2">
-          <ScopeOption checked={isPublic} onSelect={() => setIsPublic(true)} title="公開（誰でも回答可）">
-            「みんなの募集」の一覧に並び、誰でも回答できます。
-          </ScopeOption>
-          <ScopeOption checked={!isPublic} onSelect={() => setIsPublic(false)} title="非公開（リンクを知っている人だけ）">
-            一覧には並びません。リンクを送った相手だけが回答できます。
-          </ScopeOption>
+          <ScopeOption checked={isPublic} onSelect={() => setIsPublic(true)} title="公開（誰でも回答可）" />
+          <ScopeOption checked={!isPublic} onSelect={() => setIsPublic(false)} title="非公開（リンクを知っている人だけ）" />
         </div>
       </Section>
 
@@ -349,12 +348,6 @@ export function NewLinkForm({ editing }: { editing?: EditTarget }) {
         label="表示名"
         required
         count={{ value: makerName, max: 20 }}
-        note={
-          profileName && makerName.trim() === profileName
-            ? "プロフィールで設定した名前が自動で入ります。※入力欄から変更可"
-            : "「〇〇さんが意見を募集しています」と出ます。"
-        }
-        noteBelow
       >
         <input value={makerName} onChange={(e) => setMakerName(e.target.value)} maxLength={20} placeholder="例：はなこ" aria-label="表示名" className={inputClass} />
       </Field>
@@ -430,14 +423,11 @@ function Field({
   );
 }
 
-function ScopeOption({ checked, onSelect, title, children }: { checked: boolean; onSelect: () => void; title: string; children: React.ReactNode }) {
+function ScopeOption({ checked, onSelect, title }: { checked: boolean; onSelect: () => void; title: string }) {
   return (
-    <label className={`flex min-h-11 cursor-pointer items-start gap-2.5 rounded-lg p-2.5 ${checked ? "border-2 border-leaf-dark bg-leaf-tint" : "border border-line bg-card"}`}>
-      <input type="radio" name="scope" checked={checked} onChange={onSelect} className="mt-1 h-4 w-4 accent-[var(--leaf-dark)]" />
-      <span className="flex flex-col">
-        <span className="text-sm font-bold">{title}</span>
-        <span className="text-xs leading-relaxed text-muted">{children}</span>
-      </span>
+    <label className={`flex min-h-11 cursor-pointer items-center gap-2.5 rounded-lg p-2.5 ${checked ? "border-2 border-leaf-dark bg-leaf-tint" : "border border-line bg-card"}`}>
+      <input type="radio" name="scope" checked={checked} onChange={onSelect} className="h-4 w-4 accent-[var(--leaf-dark)]" />
+      <span className="text-sm font-bold">{title}</span>
     </label>
   );
 }
