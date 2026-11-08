@@ -99,13 +99,13 @@ function About({ link }: { link: FeedbackLink }) {
           {link.images.map((src, i) => {
             const caption = link.imageCaptions[i]?.trim();
             return (
-              // 画像の下にタイトル（あれば）。幅は画像で決まり、タイトルはその幅で折り返す
+              // 画像の下にタイトル（あれば）。幅は画像で決まり（左の列の幅まで）、タイトルはその幅で折り返す
               // （w-min で画像の幅に合わせると、パソコンでは画像の幅が 0 として数えられ、横長の画像が極端に小さくなるため使わない）
-              <figure key={`${i}-${src}`} className="flex shrink-0 flex-col gap-1.5">
+              <figure key={`${i}-${src}`} className="flex max-w-full shrink-0 flex-col gap-1.5">
                 {/* 押すと、元の大きさで開く */}
-                <a href={src} target="_blank" rel="noopener noreferrer" className="overflow-hidden rounded-lg border border-line bg-card">
+                <a href={src} target="_blank" rel="noopener noreferrer" className="block max-w-full overflow-hidden rounded-lg border border-line bg-card">
                   {/* 見てほしいものの中心なので、すぐ読み込む（大きさが決まる前は幅0になり、遅らせると読み込まれないことがある） */}
-                  <Image src={src} alt={caption || `画像 ${i + 1}`} width={0} height={0} sizes="320px" loading="eager" className="h-52 w-auto min-w-24 max-w-[80vw] object-contain lg:h-80 lg:max-w-full" />
+                  <Image src={src} alt={caption || `画像 ${i + 1}`} width={0} height={0} sizes="(min-width: 1024px) 720px, 80vw" loading="eager" className="h-52 w-auto min-w-24 max-w-[80vw] object-contain lg:h-auto lg:max-h-80 lg:max-w-full" />
                 </a>
                 {caption && <figcaption className="w-0 min-w-full text-center text-xs leading-relaxed text-muted lg:text-sm">{caption}</figcaption>}
               </figure>
