@@ -42,7 +42,8 @@ export function MyLinks() {
       setLoginError(failure);
       setMoved(movedCount);
       setAccount(acc);
-      setName(acc.state === "none" ? "" : acc.displayName);
+      // ゲストの名前は残さない（マイページでも「ゲスト」と出す）
+      setName(acc.state === "member" ? acc.displayName : "");
       setAnswered(n);
       if (r.ok) setLinks(r.data);
       else setError(r.message);
@@ -88,11 +89,10 @@ export function MyLinks() {
           <span className="flex min-w-0 flex-1 flex-col">
             <b className="truncate font-round text-lg">{name || (account?.state === "member" ? "名前未設定" : "ゲスト")}</b>
             {account?.state === "member" && account.who && <span className="truncate text-xs text-muted">{account.who}</span>}
-            {account && account.state !== "member" && name && <span className="text-xs text-muted">ゲスト</span>}
           </span>
         </div>
-        {/* 名前を残す先（利用者）がまだない人は、初めて募集したときに保存するので出さない */}
-        {account && account.state !== "none" && (
+        {/* 名前を変えられるのは、ログインしている人だけ（ゲストは募集のたびに入力する） */}
+        {account?.state === "member" && (
           <button
             type="button"
             onClick={() => setEditing((v) => !v)}
@@ -102,7 +102,7 @@ export function MyLinks() {
             {editing ? "閉じる" : "名前を変更"}
           </button>
         )}
-        {editing && account && account.state !== "none" && <ProfileCard initialName={name} onSaved={setName} />}
+        {editing && account?.state === "member" && <ProfileCard initialName={name} onSaved={setName} />}
       </section>
 
       {moved > 0 && <p className="rounded-lg border border-leaf bg-card px-3 py-2 text-sm font-bold">このブラウザで作成した募集を {moved} 件、アカウントに移しました。</p>}

@@ -43,9 +43,10 @@ export function AccountMenu() {
 
   // ログインしていない人（ゲスト）にも同じアイコンとメニューを出す。名前の代わりに「ゲスト」と出し、ログアウトの代わりにログイン
   const member = account.state === "member";
-  const displayName = account.state === "none" ? "" : account.displayName;
+  // ゲストの名前は残さないので、いつも「ゲスト」
+  const displayName = member ? account.displayName : "";
   const name = member ? displayName || account.who || "アカウント" : displayName || "ゲスト";
-  const sub = member ? account.who : displayName ? "ゲスト" : null;
+  const sub = member ? account.who : null;
   async function logout() {
     if (!window.confirm("ログアウトしますか？もう一度ログインすれば、募集と回答はまた確認できます。")) return;
     await signOut();

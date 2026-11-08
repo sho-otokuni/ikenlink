@@ -47,8 +47,8 @@ export function SettingsPanel() {
         )}
       </section>
 
-      {/* まだ何も使っていない人は、名前を残す先（利用者）がないので、初めて募集したときに保存する */}
-      {account.state !== "none" && (
+      {/* 表示名を残せるのは、ログインしている人だけ（ゲストは募集のたびに入力する） */}
+      {account.state === "member" && (
         <section className="flex flex-col gap-2">
           <h2 className="text-sm font-bold">プロフィール</h2>
           <ProfileCard initialName={account.displayName} />

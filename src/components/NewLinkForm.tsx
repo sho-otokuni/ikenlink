@@ -74,12 +74,14 @@ export function NewLinkForm({ editing }: { editing?: EditTarget }) {
   const linkId = useRef<string | null>(editing?.link.id ?? null);
   const uploads = useRef(new Map<string, Promise<string | null>>());
 
-  // プロフィールの名前を、表示名の欄に入れておく（もう何か書いてあれば上書きしない）
+  // ログインしている人だけ、プロフィールの名前を表示名の欄に入れておく（もう何か書いてあれば上書きしない）。
+  // ゲストの名前は残さないので、毎回入力してもらう
   useEffect(() => {
     let alive = true;
     getAccount().then((a) => {
       if (!alive) return;
-      const name = a.state === "none" ? "" : a.displayName;
+      if (a.state !== "member") return setProfileName(null);
+      const name = a.displayName;
       setProfileName(name);
       if (name) setMakerName((v) => v || name);
     });
@@ -171,8 +173,9 @@ export function NewLinkForm({ editing }: { editing?: EditTarget }) {
       setBusy(false);
       return setError(r.message);
     }
-    // プロフィールに名前がまだなければ、いま使った名前を保存しておく（次からは自動で入る）。失敗しても募集はできている
-    if (!profileName) void setDisplayName(makerName);
+    // ログインしていて、プロフィールに名前がまだなければ、いま使った名前を保存しておく（次からは自動で入る）。
+    // profileName が "" のときがその場合（ゲストは null で、名前を残さない）。失敗しても募集はできている
+    if (profileName === "") void setDisplayName(makerName);
     router.push(`/me/${r.data}?created=1`);
   }
 
