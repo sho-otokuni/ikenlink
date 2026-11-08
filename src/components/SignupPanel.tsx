@@ -56,8 +56,8 @@ function Compare() {
             <th scope="col" className="w-[40%] p-2.5 lg:p-3">
               <span className="sr-only">機能</span>
             </th>
-            <th scope="col" className="w-[30%] p-2.5 text-center font-bold lg:p-3">未登録</th>
-            <th scope="col" className="w-[30%] p-2.5 text-center font-bold lg:p-3">登録済み</th>
+            <th scope="col" className="w-[30%] p-2.5 text-center font-bold lg:p-3">ゲスト</th>
+            <th scope="col" className="w-[30%] p-2.5 text-center font-bold lg:p-3">アカウント登録済み</th>
           </tr>
         </thead>
         <tbody>
@@ -117,7 +117,7 @@ export function SignupPanel() {
         アカウントをお持ちの方はログイン ›
       </Link>
       <section className="flex flex-col gap-2">
-        <h2 className="text-sm font-bold">登録の有無による機能の違い</h2>
+        <h2 className="text-sm font-bold">ゲストとアカウント登録済みの違い</h2>
         <Compare />
       </section>
     </div>
@@ -134,7 +134,7 @@ export function LoginPanel() {
     <div className="flex flex-col gap-4">
       <AccountCard account={account} loginError={null} moved={0} mode="login" />
       <Link href="/signup" className="flex min-h-11 items-center self-start text-sm font-bold text-coral">
-        アカウントをお持ちでない方は新規登録 ›
+        アカウントをお持ちでない方はアカウント登録 ›
       </Link>
     </div>
   );

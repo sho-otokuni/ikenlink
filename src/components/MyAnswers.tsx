@@ -37,10 +37,10 @@ export function MyAnswers() {
       <div className="flex flex-col items-start gap-3 rounded-lg border border-line bg-card p-4">
         <b className="text-sm">回答履歴の閲覧には、アカウント登録が必要です</b>
         <p className="text-xs leading-relaxed text-muted">
-          このブラウザでアカウントを登録すると、これまでの回答とこれからの回答を、このページで確認できます。
+          このブラウザでアカウント登録をすると、これまでの回答とこれからの回答を、このページで確認できます。
         </p>
         <Link href="/signup" className="flex min-h-11 items-center rounded-lg bg-coral px-5 text-sm font-bold text-night">
-          アカウントを登録する
+          アカウント登録
         </Link>
       </div>
     );

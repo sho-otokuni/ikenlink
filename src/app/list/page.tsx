@@ -5,7 +5,7 @@ import { PublicList } from "@/components/PublicList";
 
 export const metadata: Metadata = {
   title: "みんなの募集｜意見リンク",
-  description: "アイデア、デザイン、作ったもの。いろんな人が「どう思う？」と意見を募集しています。登録なし、30秒で答えられます。",
+  description: "アイデア、デザイン、作ったもの。いろんな人が「どう思う？」と意見を募集しています。登録不要、30秒で回答できます。",
 };
 
 /** みんなの募集の一覧（公開を選んだ、締め切り前の募集） */

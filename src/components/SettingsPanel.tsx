@@ -33,7 +33,7 @@ export function SettingsPanel() {
         ) : (
           <div className="flex flex-col gap-2 rounded-lg border border-line bg-card p-3">
             <p className="text-xs leading-relaxed text-muted">
-              現在は登録せずにご利用中です。投稿した募集は、このブラウザにのみ保存されています。
+              現在はゲストとしてご利用中です。投稿した募集は、このブラウザにのみ保存されています。
             </p>
             <div className="flex flex-wrap gap-2">
               <Link href="/signup" className="flex min-h-11 items-center rounded-lg bg-coral px-4 text-sm font-bold text-night">

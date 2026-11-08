@@ -25,7 +25,7 @@ const siteUrl =
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: "意見リンク",
-  description: "「どう思う？」を気軽に聞ける。画像や URL を貼るだけで、意見が集まるリンクができる。答える人は登録なし、30秒。",
+  description: "「どう思う？」を気軽に聞ける。画像や URL を貼るだけで、意見が集まるリンクができる。回答は登録不要、30秒。",
   openGraph: { siteName: "意見リンク", locale: "ja_JP", type: "website" },
   // X では、大きな画像付きのカードで出す
   twitter: { card: "summary_large_image" },

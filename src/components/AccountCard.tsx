@@ -201,7 +201,7 @@ export function AccountCard({
 function Consent() {
   return (
     <p className="text-[11px] leading-relaxed text-muted">
-      登録すると、
+      アカウント登録をすると、
       <Link href="/terms" className="underline underline-offset-2">利用規約</Link>
       および
       <Link href="/privacy" className="underline underline-offset-2">プライバシーポリシー</Link>

@@ -163,10 +163,10 @@ function Bubbles() {
 /** サイト全体のカード */
 export async function siteCard() {
   const heading = "「どう思う？」を、気軽に聞ける。意見リンク";
-  const body = "画像や URL を貼るだけで、意見が集まる。答える人は登録なし・30秒";
+  const body = "画像や URL を貼るだけで、意見が集まる。回答は登録不要・30秒";
   return new ImageResponse(
     (
-      <Frame footer="答える人は登録なし・30秒">
+      <Frame footer="回答は登録不要・30秒">
         <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
           <div style={{ display: "flex", flexDirection: "column", fontFamily: "Zen", fontSize: 88, lineHeight: 1.25 }}>
             <div>「どう思う？」を、</div>
@@ -187,7 +187,7 @@ export async function linkCard(title: string, makerName: string, imageUrl?: stri
   const width = image ? 560 : 700;
   const t = clip(title, image ? 24 : 28);
   const lead = `${clip(makerName, 12)}さんが、意見を募集しています`;
-  const footer = "30秒・登録なしで答えられます";
+  const footer = "登録不要、30秒で回答できます";
   const size = image ? (t.length > 8 ? 60 : 80) : t.length > 10 ? 72 : 96;
   return new ImageResponse(
     (

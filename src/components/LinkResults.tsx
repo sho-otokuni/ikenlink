@@ -181,7 +181,7 @@ function ShareCard({ link, highlight }: { link: FeedbackLink; highlight: boolean
   const origin = useOrigin();
   const [copied, setCopied] = useState(false);
   const shareUrl = `${origin}/l/${link.id}`;
-  const text = `「${link.title}」について、意見を募集しています。30秒・登録なしで答えられます！`;
+  const text = `「${link.title}」について、意見を募集しています。登録不要、30秒で回答できます。`;
   const xUrl = `https://x.com/intent/post?text=${encodeURIComponent(text)}&url=${encodeURIComponent(shareUrl)}`;
   // LINE の送る画面（スマホでは LINE のアプリが開き、送る相手を選べる）
   const lineUrl = `https://line.me/R/share?text=${encodeURIComponent(`${text}\n${shareUrl}`)}`;

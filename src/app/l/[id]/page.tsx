@@ -11,7 +11,7 @@ export async function generateMetadata(props: PageProps<"/l/[id]">): Promise<Met
   if (!link) return { title: "意見リンク" };
   return {
     title: `${link.title}｜意見リンク`,
-    description: `${link.makerName}さんが意見を募集しています。登録なし、30秒で答えられます。`,
+    description: `${link.makerName}さんが意見を募集しています。登録不要、30秒で回答できます。`,
   };
 }
 
