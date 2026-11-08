@@ -4,14 +4,15 @@ import { useState } from "react";
 
 import { LinkIcon } from "@/components/icons";
 import { KindLabel } from "@/components/KindLabel";
-import { formatDay, QUESTION_COPY } from "@/lib/questions";
+import { formatDay, questionChoices, questionLabel } from "@/lib/questions";
 import type { LinkKind, Question } from "@/lib/types";
 
-export type PreviewQuestion = { label: string; choices?: string[] };
+/** multiple＝選択式で複数選べる */
+export type PreviewQuestion = { label: string; choices?: string[]; multiple?: boolean };
 
 /** 保存してある質問を、プレビューで見せる形にする */
 export function toPreviewQuestions(questions: Question[]): PreviewQuestion[] {
-  return questions.map((q) => (q.kind === "free" ? { label: q.text ?? "" } : { label: QUESTION_COPY[q.kind].label, choices: QUESTION_COPY[q.kind].choices }));
+  return questions.map((q) => ({ label: questionLabel(q), choices: questionChoices(q), multiple: q.kind === "multi" }));
 }
 
 /**
@@ -80,7 +81,10 @@ export function LinkPreview({
           ))}
         {shownQuestions.map((q, i) => (
           <div key={q.label + i} className="flex w-full flex-col gap-1.5">
-            <b className="text-[13px]">{q.label}</b>
+            <b className="text-[13px]">
+              {q.label}
+              {q.multiple && <span className="ml-1 text-[11px] font-normal text-muted">（複数選べます）</span>}
+            </b>
             {q.choices ? (
               <div className="flex flex-wrap gap-1.5">
                 {q.choices.map((c) => (

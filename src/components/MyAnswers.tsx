@@ -7,8 +7,7 @@ import { useEffect, useState } from "react";
 import { KindLabel } from "@/components/KindLabel";
 import { getAccount, type Account } from "@/lib/auth";
 import { fetchMyAnswers, type MyAnswer } from "@/lib/links";
-import { QUESTION_COPY } from "@/lib/questions";
-import type { Question } from "@/lib/types";
+import { answerValues, questionLabel } from "@/lib/questions";
 
 /** 自分の回答：これまでに答えた意見を、答えた募集ごとに新しい順で並べる（アカウント登録している人だけ） */
 export function MyAnswers() {
@@ -84,7 +83,7 @@ export function MyAnswers() {
               .map((q) => (
                 <div key={q.id} className="flex flex-col gap-0.5">
                   <dt className="text-xs font-bold text-muted">{questionLabel(q)}</dt>
-                  <dd className="m-0 whitespace-pre-wrap rounded-lg bg-bg px-2.5 py-1.5 text-[13px] leading-relaxed">{a.answers[q.id]}</dd>
+                  <dd className="m-0 whitespace-pre-wrap rounded-lg bg-bg px-2.5 py-1.5 text-[13px] leading-relaxed">{answerValues(q, a.answers[q.id]).join("、")}</dd>
                 </div>
               ))}
           </dl>
@@ -95,8 +94,4 @@ export function MyAnswers() {
       ))}
     </ul>
   );
-}
-
-function questionLabel(q: Question) {
-  return q.kind === "free" ? q.text ?? "" : QUESTION_COPY[q.kind].label;
 }

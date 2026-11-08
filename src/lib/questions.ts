@@ -1,4 +1,4 @@
-import type { LinkKind, QuestionKind } from "@/lib/types";
+import type { LinkKind, Question, QuestionKind } from "@/lib/types";
 
 /**
  * 型ごとの、答える人に見せる文と選択肢。
@@ -48,6 +48,14 @@ export const QUESTION_COPY: Record<
     note: "",
     placeholder: "思ったことを自由にどうぞ",
   },
+  single: {
+    label: "",
+    note: "",
+  },
+  multi: {
+    label: "",
+    note: "",
+  },
   first_look: {
     label: "パッと見て、何に見えましたか？",
     note: "",
@@ -55,14 +63,60 @@ export const QUESTION_COPY: Record<
   },
 };
 
-/** 作る画面で選べる型の並び（自由な質問は別に足す）と、最初から印を付けておくもの */
-export const TEMPLATE_KINDS: { kind: Exclude<QuestionKind, "free" | "first_look">; on: boolean }[] = [
-  { kind: "impression", on: true },
-  { kind: "good", on: true },
-  { kind: "confused", on: true },
-  { kind: "would_use", on: true },
-  { kind: "price", on: false },
+/** 質問は全部でいくつまで・選択肢はいくつまで・文字数 */
+export const MAX_QUESTIONS = 5;
+export const MIN_CHOICES = 2;
+export const MAX_CHOICES = 6;
+export const MAX_QUESTION_TEXT = 60;
+export const MAX_CHOICE_TEXT = 20;
+
+/** 複数選べる質問の答えは、選んだものをこの文字（改行）でつないで1つにする */
+export const ANSWER_SEPARATOR = String.fromCharCode(10);
+
+/** 新しく募集するときに、最初から入っている質問 */
+export const DEFAULT_QUESTION_TEXT = "あなたの意見を聞かせてください";
+
+/** 作る画面で選べる質問の形式 */
+export const QUESTION_TYPES: { kind: "free" | "single" | "multi"; label: string }[] = [
+  { kind: "free", label: "自由入力" },
+  { kind: "single", label: "選択式（1つ選ぶ）" },
+  { kind: "multi", label: "選択式（複数選べる）" },
 ];
+
+/** よく使われる質問。押すと、この中身が入った状態で質問が足される（足したあとで直せる） */
+export const QUESTION_PRESETS: { text: string; kind: "free" | "single" | "multi"; choices?: string[] }[] = [
+  { text: "いいと思うところは？", kind: "free" },
+  { text: "気になるところ・分かりにくいところは？", kind: "free" },
+  { text: "あったら使いたい・ほしいと思いますか？", kind: "single", choices: ["ほしい", "たぶん", "いらないかな"] },
+  { text: "お金を払うなら、いくらまで？", kind: "single", choices: ["無料なら", "〜500円", "〜1,000円", "それ以上"] },
+];
+
+/** 質問の文。自分で書いた質問はその文、前の版の決まった質問は決まった文 */
+export function questionLabel(q: Question): string {
+  return q.kind === "free" || q.kind === "single" || q.kind === "multi" ? (q.text ?? "") : QUESTION_COPY[q.kind].label;
+}
+
+/** 選択式なら選択肢（前の版の決まった質問は、決まった選択肢）。自由入力なら undefined */
+export function questionChoices(q: Question): string[] | undefined {
+  if (q.kind === "single" || q.kind === "multi") return q.choices ?? [];
+  return QUESTION_COPY[q.kind].choices;
+}
+
+/** 入力欄の例の文 */
+export function questionPlaceholder(q: Question): string | undefined {
+  return QUESTION_COPY[q.kind].placeholder;
+}
+
+/**
+ * 答え（1つの文字）を、選んだもの・書いたものの並びにする。
+ * 複数選べる質問は改行でつないであるので分け、前の版の選択肢は、いまの選択肢に合わせる
+ */
+export function answerValues(q: Question, raw: string | undefined): string[] {
+  const v = (raw ?? "").trim();
+  if (!v) return [];
+  if (q.kind === "multi") return v.split(ANSWER_SEPARATOR).filter(Boolean);
+  return [QUESTION_COPY[q.kind].aliases?.[v] ?? v];
+}
 
 /** 見てほしいものの種類の呼び方（並びは作る画面・一覧の順） */
 export const LINK_KINDS: { kind: LinkKind; label: string }[] = [

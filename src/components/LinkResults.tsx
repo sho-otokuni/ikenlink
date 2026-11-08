@@ -10,7 +10,7 @@ import { KindLabel } from "@/components/KindLabel";
 import { LinkPreview, toPreviewQuestions } from "@/components/LinkPreview";
 import { getAccount } from "@/lib/auth";
 import { deleteLink, fetchResults, fetchResultsByToken, setLinkDeadline, setLinkPublic, type Response, type Results } from "@/lib/links";
-import { DEADLINES, deadlineAfter, deadlineOn, formatDay, isClosed, QUESTION_COPY, remaining } from "@/lib/questions";
+import { answerValues, DEADLINES, deadlineAfter, deadlineOn, formatDay, isClosed, questionChoices, questionLabel, remaining } from "@/lib/questions";
 import type { FeedbackLink, Question } from "@/lib/types";
 
 /**
@@ -95,7 +95,7 @@ export function LinkResults({ id, created, saved = false, token }: { id: string;
       <div className="flex flex-col gap-3.5 lg:grid lg:grid-cols-[1fr_360px] lg:items-start lg:gap-6 xl:grid-cols-[1fr_400px]">
         <div className="order-3 flex flex-col gap-3.5 lg:order-none lg:col-start-1 lg:row-start-1 lg:gap-3">
           {count > 0 ? (
-            link.questions.map((q) => <QuestionResult key={q.id} question={q} responses={responses} />)
+            <ResponsesView questions={link.questions} responses={responses} />
           ) : (
             <section className="flex flex-col gap-1 lg:items-start lg:gap-2 lg:rounded-lg lg:border lg:border-dashed lg:border-line lg:p-5">
               <b className="text-sm lg:font-round lg:text-lg">まだ意見は届いていません</b>
@@ -401,29 +401,85 @@ function AdminUrlCard({ id, token, highlight }: { id: string; token: string; hig
   );
 }
 
+/**
+ * 届いた意見の見え方を切り替える。
+ * 質問ごと：質問ごとに、みんなの答えをまとめて見る／回答者ごと：1人の答えを、質問の順にまとめて見る（名前は出さず、届いた順の番号で呼ぶ）
+ */
+function ResponsesView({ questions, responses }: { questions: Question[]; responses: Response[] }) {
+  const [view, setView] = useState<"question" | "person">("question");
+  const tab = (id: "question" | "person", label: string) => (
+    <button
+      type="button"
+      role="tab"
+      aria-selected={view === id}
+      onClick={() => setView(id)}
+      className={`min-h-10 flex-1 rounded-md text-xs font-bold lg:text-sm ${view === id ? "bg-card shadow-sm" : "text-muted"}`}
+    >
+      {label}
+    </button>
+  );
+  return (
+    <>
+      <div role="tablist" aria-label="意見の見え方" className="flex gap-1 rounded-lg bg-line p-1 lg:max-w-sm">
+        {tab("question", "質問ごと")}
+        {tab("person", "回答者ごと")}
+      </div>
+      {view === "question"
+        ? questions.map((q) => <QuestionResult key={q.id} question={q} responses={responses} />)
+        : responses.map((r, i) => <PersonResult key={r.id} number={responses.length - i} response={r} questions={questions} />)}
+    </>
+  );
+}
+
+/** 回答者1人分の答え。新しい順に並べ、番号は届いた順（いちばん最初が 回答者1） */
+function PersonResult({ number, response, questions }: { number: number; response: Response; questions: Question[] }) {
+  return (
+    <section className="flex flex-col gap-2 rounded-lg border border-line bg-card px-3 py-3 lg:px-4 lg:py-3.5">
+      <h2 className="flex items-baseline gap-2 text-sm font-bold lg:text-base">
+        回答者 {number}
+        <span className="text-[11px] font-normal text-muted">{new Date(response.createdAt).toLocaleString("ja-JP", { month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" })}</span>
+      </h2>
+      <dl className="flex flex-col gap-2">
+        {questions.map((q) => {
+          // 複数選べる質問は「ホーム、設定」のように並べる
+          const value = answerValues(q, response.answers[q.id]).join("、");
+          return (
+            <div key={q.id} className="flex flex-col gap-0.5 border-t border-line pt-2 first:border-t-0 first:pt-0">
+              <dt className="text-xs text-muted">{questionLabel(q)}</dt>
+              <dd className={`whitespace-pre-wrap text-[13px] leading-relaxed ${value ? "" : "text-muted"}`}>{value || "（回答なし）"}</dd>
+            </div>
+          );
+        })}
+      </dl>
+    </section>
+  );
+}
+
 function QuestionResult({ question, responses }: { question: Question; responses: Response[] }) {
-  const copy = QUESTION_COPY[question.kind];
-  const label = question.kind === "free" ? question.text ?? "" : copy.label;
-  // 新しい順に並んでいる。前の版の選択肢は、いまの選択肢に合わせて数える
-  const values = responses
-    .map((r) => (r.answers[question.id] ?? "").trim())
-    .filter(Boolean)
-    .map((v) => copy.aliases?.[v] ?? v);
+  const label = questionLabel(question);
+  const choices = questionChoices(question);
+  const multiple = question.kind === "multi";
+  // 1人分の答えを、選んだもの・書いたものの並びにする（新しい順。前の版の選択肢は、いまの選択肢に合わせる）
+  const perPerson = responses.map((r) => answerValues(question, r.answers[question.id])).filter((v) => v.length > 0);
+  const values = perPerson.flat();
 
   return (
     <section className="flex flex-col gap-1.5 lg:gap-2 lg:rounded-lg lg:border lg:border-line lg:bg-card lg:px-4 lg:py-3.5">
       <h2 className="text-sm font-bold leading-snug lg:text-base">
         {label}
-        <span className="ml-1.5 text-[11px] font-normal text-muted">{values.length}件</span>
+        <span className="ml-1.5 text-[11px] font-normal text-muted">
+          {perPerson.length}件{multiple && "（複数選べる質問。割合は回答した人数に対して）"}
+        </span>
       </h2>
-      {copy.choices ? (
+      {choices ? (
         <div className="flex flex-col gap-1.5">
-          {copy.choices.map((c) => {
-            const n = values.filter((v) => v === c).length;
-            const pct = values.length ? Math.round((n / values.length) * 100) : 0;
+          {choices.map((c) => {
+            // 何人が選んだか。複数選べる質問は1人が何個も選ぶので、割合は回答した人数で割る
+            const n = perPerson.filter((v) => v.includes(c)).length;
+            const pct = perPerson.length ? Math.round((n / perPerson.length) * 100) : 0;
             return (
               <div key={c} className="flex items-center gap-2 text-xs">
-                <span className="w-20 shrink-0">{c}</span>
+                <span title={c} className="w-24 shrink-0 truncate lg:w-32">{c}</span>
                 <div className="h-[18px] flex-1 overflow-hidden rounded-full bg-line">
                   <div className="h-full rounded-full bg-coral" style={{ width: `${pct}%` }} />
                 </div>

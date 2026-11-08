@@ -10,7 +10,7 @@ import { Header } from "@/components/Header";
 import { KindLabel } from "@/components/KindLabel";
 import { markAnswered } from "@/lib/answered";
 import { fetchMyAnswerCount, submitResponse } from "@/lib/links";
-import { formatDay, isClosed, QUESTION_COPY } from "@/lib/questions";
+import { ANSWER_SEPARATOR, answerValues, formatDay, isClosed, questionChoices, questionLabel, questionPlaceholder } from "@/lib/questions";
 import type { Answers, FeedbackLink, Question } from "@/lib/types";
 
 type Step = "answer" | "done" | "closed";
@@ -131,25 +131,42 @@ function About({ link }: { link: FeedbackLink }) {
   );
 }
 
+/**
+ * 質問1つ分の答える欄。自由入力は文章、選択式（1つ選ぶ）は押した1つ、
+ * 選択式（複数選べる）は押したものすべて（選択肢の並び順で、改行でつないで1つの答えにする）
+ */
 function QuestionField({ question, value, onChange }: { question: Question; value: string; onChange: (v: string) => void }) {
-  const copy = QUESTION_COPY[question.kind];
-  const label = question.kind === "free" ? question.text ?? "" : copy.label;
+  const label = questionLabel(question);
+  const choices = questionChoices(question);
+  const multiple = question.kind === "multi";
+  const picked = multiple ? answerValues(question, value) : [];
+  function toggle(c: string) {
+    if (!multiple) return onChange(value === c ? "" : c);
+    const next = picked.includes(c) ? picked.filter((x) => x !== c) : [...picked, c];
+    onChange((choices ?? []).filter((x) => next.includes(x)).join(ANSWER_SEPARATOR));
+  }
   return (
     <fieldset className="flex flex-col">
-      <legend className="mb-1.5 text-[15px] font-bold leading-snug">{label}</legend>
-      {copy.choices ? (
+      <legend className="mb-1.5 text-[15px] font-bold leading-snug">
+        {label}
+        {multiple && <span className="ml-1.5 text-xs font-normal text-muted">（複数選べます）</span>}
+      </legend>
+      {choices ? (
         <div className="flex flex-wrap gap-2">
-          {copy.choices.map((c) => (
-            <button
-              key={c}
-              type="button"
-              aria-pressed={value === c}
-              onClick={() => onChange(value === c ? "" : c)}
-              className={`min-h-11 rounded-lg border px-4 text-sm font-bold transition ${value === c ? "border-coral bg-coral text-night" : "border-line bg-card"}`}
-            >
-              {c}
-            </button>
-          ))}
+          {choices.map((c) => {
+            const on = multiple ? picked.includes(c) : value === c;
+            return (
+              <button
+                key={c}
+                type="button"
+                aria-pressed={on}
+                onClick={() => toggle(c)}
+                className={`min-h-11 rounded-lg border px-4 text-sm font-bold transition ${on ? "border-coral bg-coral text-night" : "border-line bg-card"}`}
+              >
+                {c}
+              </button>
+            );
+          })}
         </div>
       ) : (
         <textarea
@@ -157,7 +174,7 @@ function QuestionField({ question, value, onChange }: { question: Question; valu
           onChange={(e) => onChange(e.target.value)}
           maxLength={500}
           rows={2}
-          placeholder={copy.placeholder}
+          placeholder={questionPlaceholder(question)}
           aria-label={label}
           className="rounded-lg border border-line bg-card px-3 py-2.5 text-base leading-relaxed outline-none focus:border-coral"
         />

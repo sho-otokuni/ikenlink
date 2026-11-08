@@ -6,14 +6,14 @@ import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { CharCount } from "@/components/CharCount";
 import { CalendarIcon } from "@/components/icons";
 import { LinkPreview } from "@/components/LinkPreview";
+import { checkDrafts, defaultDrafts, draftsFrom, QuestionBuilder, toQuestions, type QuestionDraft } from "@/components/QuestionBuilder";
 import { getAccount, setDisplayName } from "@/lib/auth";
 import { shrinkImage } from "@/lib/image";
 import { createLink, newLinkId, updateLink, uploadImage } from "@/lib/links";
-import { DEADLINES, deadlineAfter, deadlineOn, formatDay, LINK_KINDS, QUESTION_COPY, TEMPLATE_KINDS } from "@/lib/questions";
-import type { FeedbackLink, LinkKind, Question, QuestionKind } from "@/lib/types";
+import { DEADLINES, deadlineAfter, deadlineOn, formatDay, LINK_KINDS } from "@/lib/questions";
+import type { FeedbackLink, LinkKind, Question } from "@/lib/types";
 
 const MAX_IMAGES = 4;
-const MAX_FREE = 2;
 const MAX_URLS = 5;
 
 /**
@@ -54,10 +54,8 @@ export function NewLinkForm({ editing }: { editing?: EditTarget }) {
   const [captions, setCaptions] = useState<string[]>(start?.imageCaptions ?? []);
   const [tagline, setTagline] = useState(start?.tagline ?? "");
   const [urls, setUrls] = useState<string[]>(start?.urls.length ? start.urls : [""]);
-  const [kinds, setKinds] = useState<QuestionKind[]>(
-    start ? start.questions.map((q) => q.kind).filter((k) => TEMPLATE_KINDS.some((t) => t.kind === k)) : TEMPLATE_KINDS.filter((t) => t.on).map((t) => t.kind),
-  );
-  const [freeQuestions, setFreeQuestions] = useState<string[]>(start ? start.questions.filter((q) => q.kind === "free").map((q) => q.text ?? "") : []);
+  // 聞きたいこと。新しく募集するときは「あなたの意見を聞かせてください」だけ。直すときは、いまの質問から始める
+  const [drafts, setDrafts] = useState<QuestionDraft[]>(() => (start ? draftsFrom(start.questions) : defaultDrafts()));
   // 意見が届いたあとは、答えと質問がずれないよう、質問は変えられない
   const questionsLocked = (editing?.responseCount ?? 0) > 0;
   // 締め切り：DEADLINES の id か、"date"（日付を選ぶ）。直すときは、いまの締め切りの日付から始める
@@ -90,7 +88,7 @@ export function NewLinkForm({ editing }: { editing?: EditTarget }) {
     };
   }, []);
 
-  const questionCount = questionsLocked && editing ? editing.link.questions.length : kinds.length + freeQuestions.filter((q) => q.trim()).length;
+  const questionCount = questionsLocked && editing ? editing.link.questions.length : drafts.length;
   const canSubmit = title.trim() !== "" && makerName.trim() !== "" && questionCount > 0 && !busy;
 
   const closesAt = (() => {
@@ -108,10 +106,6 @@ export function NewLinkForm({ editing }: { editing?: EditTarget }) {
     for (const src of shrunk) uploads.current.set(src, uploadImage(linkId.current, src));
     setImages((list) => [...list, ...shrunk].slice(0, MAX_IMAGES));
     setCaptions((list) => [...list, ...shrunk.map(() => "")].slice(0, MAX_IMAGES));
-  }
-
-  function toggleKind(k: QuestionKind) {
-    setKinds((list) => (list.includes(k) ? list.filter((x) => x !== k) : [...list, k]));
   }
 
   /**
@@ -134,15 +128,13 @@ export function NewLinkForm({ editing }: { editing?: EditTarget }) {
     const cleanUrls = [...new Set(urls.map((u) => u.trim()).filter(Boolean))];
     if (cleanUrls.some((u) => !/^https?:\/\/\S+$/.test(u))) return setError("URL は https:// から始まる形で入れてください");
     if (deadline === "date" && !deadlineDate) return setError("締め切りの日付を選んでください");
+    if (!questionsLocked) {
+      const problem = checkDrafts(drafts);
+      if (problem) return setError(problem);
+    }
     setBusy(true);
-    // 並びは型の順、自由な質問は最後（直すときに質問を変えられないなら、そのまま）
-    const questions: Question[] | null = questionsLocked ? null : [
-      ...TEMPLATE_KINDS.filter((t) => kinds.includes(t.kind)).map((t, i) => ({ id: `q${i + 1}`, kind: t.kind })),
-      ...freeQuestions
-        .map((text) => text.trim())
-        .filter(Boolean)
-        .map((text, i) => ({ id: `f${i + 1}`, kind: "free" as const, text })),
-    ];
+    // 直すときに質問を変えられないなら、そのまま
+    const questions: Question[] | null = questionsLocked ? null : toQuestions(drafts);
     // 置き始めておいた画像を待つ（まだ置いていないものは、ここで置く）
     const id = (linkId.current ??= newLinkId());
     const placed = await Promise.all(images.map((src) => (src.startsWith("data:") ? (uploads.current.get(src) ?? uploadImage(id, src)) : Promise.resolve(src))));
@@ -184,7 +176,7 @@ export function NewLinkForm({ editing }: { editing?: EditTarget }) {
     router.push(`/me/${r.data}?created=1`);
   }
 
-  const preview = { kind, title, images, captions, tagline, urls, makerName, closesAt, kinds, freeQuestions };
+  const preview = { kind, title, images, captions, tagline, urls, makerName, closesAt, drafts };
 
   return (
     <div className="mt-3 lg:mt-4 lg:grid lg:grid-cols-[1fr_400px] lg:items-start lg:gap-8 xl:grid-cols-[1fr_460px]">
@@ -312,49 +304,7 @@ export function NewLinkForm({ editing }: { editing?: EditTarget }) {
           </p>
         )}
         <fieldset disabled={questionsLocked} className={`m-0 border-0 p-0 ${questionsLocked ? "opacity-50" : ""}`}>
-        <div className="flex flex-col gap-2">
-          {TEMPLATE_KINDS.map((t) => {
-            const on = kinds.includes(t.kind);
-            return (
-              <label key={t.kind} className={`flex min-h-11 cursor-pointer items-start gap-2.5 rounded-lg border p-2.5 ${on ? "border-coral bg-coral-tint" : "border-line bg-card"}`}>
-                <input type="checkbox" checked={on} onChange={() => toggleKind(t.kind)} className="mt-1 h-4 w-4 accent-[var(--coral)]" />
-                <span className="flex flex-col">
-                  <span className="text-sm font-bold">{QUESTION_COPY[t.kind].label}</span>
-                  <span className="text-xs text-muted">{QUESTION_COPY[t.kind].note}</span>
-                </span>
-              </label>
-            );
-          })}
-          {freeQuestions.map((q, i) => (
-            <div key={i} className="flex items-center gap-2">
-              <input
-                value={q}
-                onChange={(e) => setFreeQuestions((list) => list.map((x, k) => (k === i ? e.target.value : x)))}
-                maxLength={60}
-                placeholder="例：名前の印象はどうですか？"
-                aria-label={`自由な質問 ${i + 1}`}
-                className={`${inputClass} flex-1`}
-              />
-              <button
-                type="button"
-                onClick={() => setFreeQuestions((list) => list.filter((_, k) => k !== i))}
-                aria-label={`自由な質問 ${i + 1} を消す`}
-                className="flex h-11 w-11 items-center justify-center rounded-full border border-line text-muted"
-              >
-                ×
-              </button>
-            </div>
-          ))}
-          {freeQuestions.length < MAX_FREE && (
-            <button
-              type="button"
-              onClick={() => setFreeQuestions((list) => [...list, ""])}
-              className="min-h-11 self-start rounded-lg border border-dashed border-line px-4 text-sm font-bold text-muted hover:border-coral"
-            >
-              ＋ 自分で質問を書く
-            </button>
-          )}
-        </div>
+        <QuestionBuilder drafts={drafts} onChange={setDrafts} />
         </fieldset>
       </Section>
 
@@ -425,18 +375,14 @@ export function NewLinkForm({ editing }: { editing?: EditTarget }) {
 }
 
 /** パソコンの幅だけ：入力しながら、答える人にどう見えるかを右に出す */
-function Preview({
-  kinds,
-  freeQuestions,
-  ...rest
-}: Omit<React.ComponentProps<typeof LinkPreview>, "questions" | "className" | "sticky"> & { kinds: QuestionKind[]; freeQuestions: string[] }) {
-  const questions = [
-    ...TEMPLATE_KINDS.filter((t) => kinds.includes(t.kind)).map((t) => ({ label: QUESTION_COPY[t.kind].label, choices: QUESTION_COPY[t.kind].choices })),
-    ...freeQuestions
-      .map((q) => q.trim())
-      .filter(Boolean)
-      .map((label) => ({ label })),
-  ];
+function Preview({ drafts, ...rest }: Omit<React.ComponentProps<typeof LinkPreview>, "questions" | "className" | "sticky"> & { drafts: QuestionDraft[] }) {
+  const questions = drafts
+    .filter((d) => d.text.trim())
+    .map((d) => ({
+      label: d.text.trim(),
+      choices: d.kind === "free" ? undefined : d.choices.map((c) => c.trim()).filter(Boolean),
+      multiple: d.kind === "multi",
+    }));
   return <LinkPreview {...rest} questions={questions} sticky className="hidden lg:flex" />;
 }
 

@@ -10,16 +10,22 @@ export type QuestionKind =
   | "would_use"
   /** いくらなら払う？ */
   | "price"
-  /** 募集する人が自由に書いた質問 */
+  /** 募集する人が書いた質問（自由入力） */
   | "free"
+  /** 募集する人が書いた選択式の質問（1つ選ぶ） */
+  | "single"
+  /** 募集する人が書いた選択式の質問（複数選べる。答えは選んだものを改行でつなぐ） */
+  | "multi"
   /** 前の版の「5秒テスト」。いまは作れない。前に作られたリンクでは、ふつうの質問として出す */
   | "first_look";
 
 export type Question = {
   id: string;
   kind: QuestionKind;
-  /** free のときの質問文（ほかの型は決まった文を使う） */
+  /** free・single・multi のときの質問文（前の版の決まった型は、決まった文を使う） */
   text?: string;
+  /** single・multi のときの選択肢 */
+  choices?: string[];
 };
 
 /** 見てほしいものの種類 */
