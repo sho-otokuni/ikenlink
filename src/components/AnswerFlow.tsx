@@ -8,6 +8,7 @@ import { AnsweredCard } from "@/components/AnsweredCard";
 import { LinkIcon } from "@/components/icons";
 import { Header } from "@/components/Header";
 import { KindLabel } from "@/components/KindLabel";
+import { ReportLink } from "@/components/ReportLink";
 import { markAnswered } from "@/lib/answered";
 import { fetchMyAnswerCount, submitResponse } from "@/lib/links";
 import { ANSWER_SEPARATOR, answerValues, formatDay, isClosed, questionChoices, questionLabel, questionPlaceholder } from "@/lib/questions";
@@ -71,6 +72,8 @@ export function AnswerFlow({ link }: { link: FeedbackLink }) {
               </button>
               <p className="text-center text-[11px] text-muted lg:text-xs">送った意見は、募集した人だけが読めます。名前は送られません。</p>
             </div>
+            {/* 不適切な募集を運営者に知らせる（目立たないように、いちばん下） */}
+            <ReportLink linkId={link.id} />
             </div>
           </div>
         )}

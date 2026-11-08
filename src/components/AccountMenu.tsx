@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 
 import { getAccount, signOut, type Account } from "@/lib/auth";
+import { fetchMyLinkCounts } from "@/lib/links";
+import { newCounts, onSeenChange } from "@/lib/seen";
 
 /**
  * ヘッダーの右端の、アカウントの入口。
@@ -15,11 +17,26 @@ export function AccountMenu() {
   const [open, setOpen] = useState(false);
   const box = useRef<HTMLDivElement>(null);
 
+  // 自分の募集に届いた新しい意見の数（アイコンの右上に印を出す）
+  const [fresh, setFresh] = useState(0);
+
   useEffect(() => {
     let alive = true;
-    getAccount().then((a) => alive && setAccount(a));
+    let counts: Record<string, number> = {};
+    const recount = () => setFresh(Object.values(newCounts(counts)).reduce((a, b) => a + b, 0));
+    (async () => {
+      const a = await getAccount();
+      if (!alive) return;
+      setAccount(a);
+      if (a.state === "none") return;
+      counts = await fetchMyLinkCounts();
+      if (alive) recount();
+    })();
+    // 届いた意見の画面を開いて「見た」ら、印を数え直す
+    const off = onSeenChange(() => alive && recount());
     return () => {
       alive = false;
+      off();
     };
   }, []);
 
@@ -62,9 +79,9 @@ export function AccountMenu() {
         onClick={() => setOpen((v) => !v)}
         aria-haspopup="menu"
         aria-expanded={open}
-        aria-label={`アカウントのメニュー（${name}）`}
+        aria-label={`アカウントのメニュー（${name}）${fresh ? `・新しい意見 ${fresh}件` : ""}`}
         // マウスを乗せたとき・メニューを開いているときは、周りを薄いグレーにし、枠をコーラルにする
-        className={`group flex h-11 w-11 items-center justify-center rounded-full hover:bg-line ${open ? "bg-line" : ""}`}
+        className={`group relative flex h-11 w-11 items-center justify-center rounded-full hover:bg-line ${open ? "bg-line" : ""}`}
       >
         <span className={`flex h-9 w-9 items-center justify-center rounded-full border-2 bg-card font-round text-sm font-bold group-hover:border-coral ${open ? "border-coral" : "border-line"}`}>
           {member || displayName ? (
@@ -77,6 +94,12 @@ export function AccountMenu() {
             </svg>
           )}
         </span>
+        {/* 新しい意見があるときは、アイコンの右上に数を出す */}
+        {fresh > 0 && (
+          <span aria-hidden className="absolute right-0 top-0.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-coral px-1 text-[10px] font-bold leading-none text-night">
+            {fresh > 99 ? "99+" : fresh}
+          </span>
+        )}
       </button>
       {open && (
         <div role="menu" className="absolute right-0 top-12 z-20 flex w-60 flex-col rounded-lg border border-line bg-card p-1.5 shadow-[0_12px_32px_rgba(0,0,0,0.12)]">
@@ -86,12 +109,13 @@ export function AccountMenu() {
           </div>
           <div className="my-1 h-px bg-line" />
           {[
-            { href: "/me", label: "マイページ" },
-            { href: "/me?tab=answers", label: "自分の回答" },
-            { href: "/settings", label: "設定" },
+            { href: "/me", label: "マイページ", badge: fresh },
+            { href: "/me?tab=answers", label: "自分の回答", badge: 0 },
+            { href: "/settings", label: "設定", badge: 0 },
           ].map((m) => (
-            <Link key={m.href} role="menuitem" href={m.href} onClick={() => setOpen(false)} className="flex min-h-11 items-center rounded-md px-3 text-sm hover:bg-line">
+            <Link key={m.href} role="menuitem" href={m.href} onClick={() => setOpen(false)} className="flex min-h-11 items-center justify-between rounded-md px-3 text-sm hover:bg-line">
               {m.label}
+              {m.badge > 0 && <span className="rounded-full bg-coral px-1.5 py-px text-[10px] font-bold text-night">新着 {m.badge}</span>}
             </Link>
           ))}
           <div className="my-1 h-px bg-line" />

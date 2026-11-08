@@ -11,6 +11,7 @@ import { ProfileCard } from "@/components/ProfileCard";
 import { finishSwitch, getAccount, readLoginError, type Account, type LoginError } from "@/lib/auth";
 import { fetchMyAnswerCount, fetchMyLinks, type MyLink } from "@/lib/links";
 import { isClosed } from "@/lib/questions";
+import { newCounts } from "@/lib/seen";
 
 /**
  * マイページ。上にプロフィール（名前・名前の変更・募集と回答の数・設定）、下に「募集」「回答」の切り替え。
@@ -18,6 +19,8 @@ import { isClosed } from "@/lib/questions";
  */
 export function MyLinks() {
   const [links, setLinks] = useState<MyLink[] | null>(null);
+  // 募集ごとの新着の数（最後に開いたときから増えた意見の数）
+  const [fresh, setFresh] = useState<Record<string, number>>({});
   const [answered, setAnswered] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [account, setAccount] = useState<Account | null>(null);
@@ -45,7 +48,10 @@ export function MyLinks() {
       // ゲストの名前は残さない（マイページでも「ゲスト」と出す）
       setName(acc.state === "member" ? acc.displayName : "");
       setAnswered(n);
-      if (r.ok) setLinks(r.data);
+      if (r.ok) {
+        setLinks(r.data);
+        setFresh(newCounts(Object.fromEntries(r.data.map((l) => [l.id, l.responseCount]))));
+      }
       else setError(r.message);
     })();
     return () => {
@@ -139,7 +145,10 @@ export function MyLinks() {
                 )}
               </span>
               <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-                <span className="truncate font-bold">{l.title}</span>
+                <span className="flex min-w-0 items-center gap-1.5">
+                  {fresh[l.id] ? <span className="shrink-0 rounded-full bg-coral px-1.5 py-px text-[10px] font-bold text-night">新着 {fresh[l.id]}</span> : null}
+                  <span className="truncate font-bold">{l.title}</span>
+                </span>
                 <span className="text-xs text-muted">
                   {isClosed(l.closesAt) ? "締め切り" : l.isPublic ? "公開" : "リンクを知っている人だけ"}
                   {l.lastResponseAt ? ` · 最後の意見 ${new Date(l.lastResponseAt).toLocaleDateString("ja-JP")}` : ""}

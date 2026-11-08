@@ -9,6 +9,7 @@ import { CalendarIcon } from "@/components/icons";
 import { KindLabel } from "@/components/KindLabel";
 import { LinkPreview, toPreviewQuestions } from "@/components/LinkPreview";
 import { getAccount } from "@/lib/auth";
+import { markSeen } from "@/lib/seen";
 import { deleteLink, fetchResults, fetchResultsByToken, setLinkDeadline, setLinkPublic, type Response, type Results } from "@/lib/links";
 import { answerValues, DEADLINES, deadlineAfter, deadlineOn, formatDay, isClosed, questionChoices, questionLabel, remaining } from "@/lib/questions";
 import type { FeedbackLink, Question } from "@/lib/types";
@@ -26,8 +27,11 @@ export function LinkResults({ id, created, saved = false, token }: { id: string;
     let alive = true;
     (token ? fetchResultsByToken(id, token) : fetchResults(id)).then((r) => {
       if (!alive) return;
-      if (r.ok) setData(r.data);
-      else setError(r.message);
+      if (r.ok) {
+        setData(r.data);
+        // 開いた時点の意見の数を「見た」ことにする（マイページとヘッダーの新着の印が消える）
+        if (r.data) markSeen(r.data.link.id, r.data.responses.length);
+      } else setError(r.message);
     });
     return () => {
       alive = false;

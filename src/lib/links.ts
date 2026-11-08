@@ -87,6 +87,35 @@ export async function submitResponse(linkId: string, answers: Answers): Promise<
   return { ok: true, data: null };
 }
 
+/** 募集を報告するときの理由 */
+export const REPORT_REASONS = [
+  { id: "inappropriate", label: "不適切な内容（暴力・性的・差別的など）" },
+  { id: "spam", label: "宣伝・スパム" },
+  { id: "rights", label: "著作権・肖像権などの侵害" },
+  { id: "personal", label: "個人情報の掲載" },
+  { id: "other", label: "その他" },
+] as const;
+export type ReportReason = (typeof REPORT_REASONS)[number]["id"];
+
+/** 不適切な募集を報告する（運営者だけが読む）。同じ募集の報告は1人1回まで */
+export async function submitReport(linkId: string, reason: ReportReason, note: string): Promise<Result<null>> {
+  if (!isSupabaseConfigured) return { ok: false, message: NOT_READY };
+  if (!(await ensureUser())) return { ok: false, message: `送れませんでした。${NETWORK}` };
+  const { error } = await supabase.from("reports").insert({ link_id: linkId, reason, note: note.trim().slice(0, 500) || null });
+  // すでに報告していれば、受け付け済みとして扱う
+  if (error?.code === "23505") return { ok: true, data: null };
+  if (error?.message.includes("too_many_reports")) return { ok: false, message: "報告が多すぎます。時間をおいてから、もう一度お試しください" };
+  if (error) return { ok: false, message: `送れませんでした。${NETWORK}` };
+  return { ok: true, data: null };
+}
+
+/** 自分の募集ごとの、届いた意見の数（新しい意見の知らせに使う）。まだ始めていない人は空 */
+export async function fetchMyLinkCounts(): Promise<Record<string, number>> {
+  if (!isSupabaseConfigured || !(await currentUserId())) return {};
+  const { data } = await supabase.rpc("my_link_stats");
+  return Object.fromEntries(((data ?? []) as { link_id: string; response_count: number }[]).map((s) => [s.link_id, Number(s.response_count ?? 0)]));
+}
+
 /** ほかの募集に答えた数（中身のある答えだけ。同じ募集は1件）。まだ始めていない人は0 */
 export async function fetchMyAnswerCount(): Promise<number> {
   if (!isSupabaseConfigured || !(await currentUserId())) return 0;
