@@ -428,8 +428,9 @@ function Field({
 
 function ScopeOption({ checked, onSelect, title }: { checked: boolean; onSelect: () => void; title: string }) {
   return (
-    <label className={`flex min-h-11 cursor-pointer items-center gap-2.5 rounded-lg p-2.5 ${checked ? "border-2 border-leaf-dark bg-leaf-tint" : "border border-line bg-card"}`}>
-      <input type="radio" name="scope" checked={checked} onChange={onSelect} className="h-4 w-4 accent-[var(--leaf-dark)]" />
+    // 選んでいる側は、ほかの選択（種類・締め切り・質問の形式）と同じコーラルで示す
+    <label className={`flex min-h-11 cursor-pointer items-center gap-2.5 rounded-lg border p-2.5 ${checked ? "border-coral bg-coral-tint" : "border-line bg-card"}`}>
+      <input type="radio" name="scope" checked={checked} onChange={onSelect} className="h-4 w-4 accent-[var(--coral)]" />
       <span className="text-sm font-bold">{title}</span>
     </label>
   );

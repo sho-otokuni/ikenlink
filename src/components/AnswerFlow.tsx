@@ -70,7 +70,7 @@ export function AnswerFlow({ link }: { link: FeedbackLink }) {
               <button type="button" onClick={submit} disabled={!answered || sending} className="min-h-12 rounded-lg bg-coral px-6 font-bold text-night transition disabled:opacity-40">
                 {sending ? "送っています…" : "意見を送る"}
               </button>
-              <p className="text-center text-[11px] text-muted lg:text-xs">送った意見は、募集した人だけが読めます。名前は送られません。</p>
+              <p className="text-center text-[11px] text-muted lg:text-xs">送った意見は、募集した人だけが読めます。名前は公開されません。</p>
             </div>
             {/* 不適切な募集を運営者に知らせる（目立たないように、いちばん下） */}
             <ReportLink linkId={link.id} />
