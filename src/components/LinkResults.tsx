@@ -100,7 +100,7 @@ export function LinkResults({ id, created, saved = false, token }: { id: string;
           ) : (
             <section className="flex flex-col gap-1 lg:items-start lg:gap-2 lg:rounded-lg lg:border lg:border-dashed lg:border-line lg:p-5">
               <b className="text-sm lg:font-round lg:text-lg">まだ意見は届いていません</b>
-              <p className="text-sm leading-relaxed text-muted">リンクを X や友だちに送ってみましょう。</p>
+              <p className="text-sm leading-relaxed text-muted">リンクを友達に送ってみましょう。</p>
               <Link href={`/l/${link.id}`} className="flex min-h-11 items-center text-xs font-bold text-coral lg:text-sm">
                 答える画面を見てみる ›
               </Link>
@@ -271,13 +271,8 @@ function SettingsCard({ id, initialPublic, initialClosesAt }: { id: string; init
           </button>
         ))}
       </div>
-      <p className="text-[11px] leading-relaxed text-muted">
-        {isPublic
-          ? closed
-            ? "締め切ったので、いまは一覧に並んでいません。"
-            : "「みんなの募集」の一覧に並んでいます。誰でも回答できます。"
-          : "一覧には並びません。リンクを送った相手だけが回答できます。"}
-      </p>
+      {/* 公開でも、締め切ったあとは一覧に出ないことだけ知らせる */}
+      {isPublic && closed && <p className="text-[11px] leading-relaxed text-muted">締め切ったため、現在は一覧に表示されていません。</p>}
 
       <div className="flex flex-wrap items-center gap-2 border-t border-line pt-2">
         <span className="flex min-w-full flex-col">
@@ -357,31 +352,8 @@ function AdminUrlCard({ id, token, highlight }: { id: string; token: string; hig
 
   if (member === null) return null;
 
-  if (member) {
-    return (
-      <section className="flex flex-col gap-1.5 rounded-lg border border-leaf bg-card p-3">
-        <h2 className="text-sm font-bold">アカウントに保存済み</h2>
-        <p className="text-xs leading-relaxed">
-          この募集は
-          <Link href="/me" className="font-bold underline underline-offset-2">
-            マイページ
-          </Link>
-          から確認できます。他の端末でも、同じアカウントでログインすれば確認できます。
-        </p>
-        <details className="text-xs">
-          <summary className="flex min-h-11 cursor-pointer items-center font-bold text-muted">管理用 URL（ログインせずに確認する場合）</summary>
-          <div className="flex flex-col gap-1.5">
-            <p className="leading-relaxed">
-              ログインせずに、届いた意見を確認できる URL です。<strong>第三者には共有しないでください。</strong>
-            </p>
-            <button type="button" onClick={copy} className="min-h-11 rounded-lg border border-line bg-card px-4 text-[13px] font-bold">
-              {copied ? "コピーしました" : "管理用 URL をコピー"}
-            </button>
-          </div>
-        </details>
-      </section>
-    );
-  }
+  // ログインしている人は、マイページからいつでも見られるので、管理用 URL のカードは出さない
+  if (member) return null;
 
   return (
     <section className={`flex flex-col gap-1.5 rounded-lg border p-3 ${highlight ? "border-peach bg-card" : "border-line bg-card"}`}>
